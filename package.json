@@ -12,6 +12,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.4.6"
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^6.4.6",
+    "matter-js": "^0.20.0",
+    "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/matter-js": "^0.20.2"
   }
 }

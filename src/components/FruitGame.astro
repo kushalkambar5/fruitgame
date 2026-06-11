@@ -1,0 +1,309 @@
+---
+import { FRUITS } from './game';
+---
+
+<div class="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8 flex flex-col gap-8">
+  
+  <!-- Top Bar: Game Mode Selector -->
+  <div class="flex flex-col sm:flex-row items-center justify-between border border-hairline bg-canvas p-4 rounded-lg gap-4 shadow-sm">
+    <div class="flex items-center gap-3">
+      <span class="w-2.5 h-2.5 rounded-full bg-success"></span>
+      <h3 class="font-sans font-semibold text-sm tracking-[-0.28px] text-ink">Game Mode</h3>
+    </div>
+    
+    <!-- Mode Tab Row (Ghost Pills) -->
+    <div class="flex items-center bg-canvas-soft-2 p-1 rounded-full border border-hairline">
+      <button 
+        data-mode="classic" 
+        class="game-mode-btn active px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer"
+      >
+        Classic (Normal)
+      </button>
+      <button 
+        data-mode="zen" 
+        class="game-mode-btn px-4 py-1.5 rounded-full text-xs font-medium text-body hover:text-ink transition-all duration-150 cursor-pointer"
+      >
+        Zen (Chill)
+      </button>
+      <button 
+        data-mode="time" 
+        class="game-mode-btn px-4 py-1.5 rounded-full text-xs font-medium text-body hover:text-ink transition-all duration-150 cursor-pointer"
+      >
+        Time Attack (Fast)
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Grid: Game Board + Dashboard Panels -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Column A (lg:cols-6): Game Board Container -->
+    <div class="lg:col-span-6 flex flex-col items-center justify-center">
+      <div class="relative border border-hairline bg-canvas rounded-xl p-3 shadow-md flex items-center justify-center overflow-hidden w-full max-w-[466px]">
+        
+        <!-- Game Canvas -->
+        <canvas 
+          id="game-canvas" 
+          width="440" 
+          height="640" 
+          class="block rounded-lg cursor-crosshair max-w-full"
+        ></canvas>
+
+        <!-- Start Overlay -->
+        <div id="start-overlay" class="absolute inset-0 bg-canvas/90 flex flex-col items-center justify-center p-6 text-center select-none z-10 transition-opacity duration-300">
+          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-canvas border border-hairline shadow-sm text-lg mb-4">🎮</div>
+          <h2 class="font-sans font-semibold text-2xl tracking-[-0.96px] text-ink mb-2">Ready to Play?</h2>
+          <p class="text-body text-sm max-w-xs mb-6">Drop fruits into the box and merge them to make the biggest fruit!</p>
+          <button id="start-btn" class="h-10 px-6 bg-ink text-canvas hover:bg-body font-medium text-sm rounded-full transition-colors duration-150 cursor-pointer">
+            Start Game
+          </button>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="game-over-overlay" class="absolute inset-0 bg-canvas/95 flex flex-col items-center justify-center p-6 text-center select-none z-10 hidden transition-opacity duration-300">
+          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-error-soft text-error text-lg mb-4">🚨</div>
+          <h2 class="font-sans font-semibold text-2xl tracking-[-0.96px] text-error mb-2">Game Over!</h2>
+          <p class="text-body text-sm max-w-xs mb-1">Your fruits piled up too high.</p>
+          <p class="font-mono text-xs text-mute mb-6" id="crash-reason">Reason: Out of memory.</p>
+          
+          <div class="bg-canvas-soft border border-hairline p-4 rounded-md w-full max-w-xs mb-6 flex flex-col gap-1">
+            <span class="text-xs text-mute font-mono">FINAL METRICS</span>
+            <span class="text-3xl font-semibold tracking-[-1.28px] text-ink" id="final-score">0</span>
+            <span class="text-xs text-mute font-mono">points scored</span>
+          </div>
+
+          <button id="restart-btn" class="h-10 px-6 bg-ink text-canvas hover:bg-body font-medium text-sm rounded-full transition-colors duration-150 cursor-pointer">
+            Play Again
+          </button>
+        </div>
+      </div>
+
+      <!-- Cooldown Loader/Prompt under Canvas -->
+      <div class="w-full max-w-[466px] mt-2 px-1 flex items-center justify-between text-xs text-mute font-mono">
+        <span>DROP: MOUSE OVER CONTAINER + CLICK</span>
+        <span id="cooldown-indicator" class="text-success hidden">● READY TO DROP</span>
+      </div>
+    </div>
+
+    <!-- Column B (lg:cols-6): Control Panel Dashboard -->
+    <div class="lg:col-span-6 flex flex-col gap-6 w-full">
+      
+      <!-- Metrics Panels -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- Panel 1: Score -->
+        <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Score</span>
+          <span id="metric-score" class="text-3xl font-semibold tracking-[-1.28px] text-ink">0</span>
+        </div>
+        
+        <!-- Panel 2: High Score -->
+        <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">High Score</span>
+          <span id="metric-highscore" class="text-3xl font-semibold tracking-[-1.28px] text-ink">0</span>
+        </div>
+
+        <!-- Panel 3: Combo -->
+        <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Combo</span>
+          <div class="flex items-baseline gap-1">
+            <span id="metric-combo" class="text-3xl font-semibold tracking-[-1.28px] text-ink">x0</span>
+          </div>
+        </div>
+
+        <!-- Panel 4: Next Asset -->
+        <div class="border border-hairline bg-canvas p-3 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Next Fruit</span>
+          <div class="flex items-center justify-between mt-1">
+            <span id="metric-next-emoji" class="text-3xl">🍒</span>
+            <span id="metric-next-name" class="font-sans font-medium text-xs text-body">Cherry</span>
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Custom button state classes for active mode */
+  .game-mode-btn.active {
+    background-color: var(--canvas);
+    color: var(--ink);
+    border-color: var(--hairline-strong);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+</style>
+
+<script>
+  import { GameEngine, FRUITS, type LogType, type GameStats } from './game';
+
+  let game: GameEngine | null = null;
+  let activeMode: 'classic' | 'zen' | 'time' = 'classic';
+
+  // DOM elements
+  const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  const startOverlay = document.getElementById('start-overlay') as HTMLDivElement;
+  const gameOverOverlay = document.getElementById('game-over-overlay') as HTMLDivElement;
+  const crashReasonText = document.getElementById('crash-reason') as HTMLParagraphElement;
+  const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
+  const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement;
+  
+  // Dashboard Metrics
+  const metricScore = document.getElementById('metric-score') as HTMLSpanElement;
+  const metricHighScore = document.getElementById('metric-highscore') as HTMLSpanElement;
+  const metricCombo = document.getElementById('metric-combo') as HTMLSpanElement;
+  const metricNextEmoji = document.getElementById('metric-next-emoji') as HTMLSpanElement;
+  const metricNextName = document.getElementById('metric-next-name') as HTMLSpanElement;
+  const finalScoreText = document.getElementById('final-score') as HTMLSpanElement;
+
+  // Mode Buttons
+  const modeButtons = document.querySelectorAll('.game-mode-btn');
+
+  // Set up terminal logging
+  function addLog(message: string, type: LogType) {
+    // Terminal removed
+  }
+
+  // Update metrics UI
+  function updateStatsUI(stats: GameStats) {
+    metricScore.textContent = stats.score.toString();
+    metricHighScore.textContent = stats.highScore.toString();
+    metricCombo.textContent = stats.combo > 0 ? `x${stats.combo}` : 'x0';
+
+    // Trigger visual highlights
+    if (stats.combo > 1) {
+      metricCombo.classList.add('text-success', 'scale-105');
+      setTimeout(() => metricCombo.classList.remove('text-success', 'scale-105'), 200);
+    }
+
+    // Update Next Asset preview
+    if (game) {
+      const nextIndex = (game as any).nextFruitIndex;
+      const nextFruit = FRUITS[nextIndex];
+      metricNextEmoji.textContent = nextFruit.emoji;
+      metricNextName.textContent = nextFruit.name;
+    }
+  }
+
+  // Handle Game Timer for Time Attack
+  function updateTimerUI(seconds: number) {
+    if (activeMode !== 'time') return;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const timeStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  // Initialize Game Instance
+  function initGame() {
+    if (game) {
+      game.destroy();
+    }
+
+    game = new GameEngine(canvas, {
+      onLog: (msg, type) => addLog(msg, type),
+      onStats: (stats) => updateStatsUI(stats),
+      onTimer: (seconds) => updateTimerUI(seconds),
+      onGameOver: (score) => {
+        gameOverOverlay.classList.remove('hidden');
+        finalScoreText.textContent = score.toString();
+        
+        if (activeMode === 'time') {
+          crashReasonText.textContent = 'Reason: Time ran out! (120s limit).';
+        } else {
+          crashReasonText.textContent = 'Reason: Fruits crossed the red line for too long!';
+        }
+      }
+    });
+
+    // Start running the engine
+    game.start(activeMode);
+
+    // Initial Stats Load
+    updateStatsUI(game.stats);
+  }
+
+  // Bind Start Buttons
+  startBtn.addEventListener('click', () => {
+    startOverlay.classList.add('hidden');
+    initGame();
+  });
+
+  restartBtn.addEventListener('click', () => {
+    gameOverOverlay.classList.add('hidden');
+    initGame();
+  });
+
+  // Mode Selection Links
+  modeButtons.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLButtonElement;
+      const mode = target.getAttribute('data-mode') as 'classic' | 'zen' | 'time';
+
+      modeButtons.forEach((b) => b.classList.remove('active', 'text-ink'));
+      modeButtons.forEach((b) => b.classList.add('text-body'));
+      
+      target.classList.add('active', 'text-ink');
+      target.classList.remove('text-body');
+
+      activeMode = mode;
+
+      // Automatically restart with new environment if game is active
+      if (!startOverlay.classList.contains('hidden')) {
+        // Just prepare
+      } else {
+        gameOverOverlay.classList.add('hidden');
+        initGame();
+      }
+    });
+  });
+
+  // Dropper Mechanics: mouse/touch events inside canvas
+  canvas.addEventListener('mousemove', (e) => {
+    if (!game) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    game.updatePreviewX(x);
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!game) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    game.updatePreviewX(x);
+  }, { passive: true });
+
+  canvas.addEventListener('mousedown', (e) => {
+    if (!game) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (game.hotfixActive) {
+      game.applyHotfixClick(x, y);
+    } else {
+      game.dropActiveFruit(x);
+    }
+    
+    // Pull statistics post action
+    updateStatsUI(game.stats);
+  });
+
+  canvas.addEventListener('touchend', (e) => {
+    if (!game) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.changedTouches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    if (game.hotfixActive) {
+      game.applyHotfixClick(x, y);
+    } else {
+      game.dropActiveFruit(x);
+    }
+
+    updateStatsUI(game.stats);
+  });
+</script>
