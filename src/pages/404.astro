@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout 
+  title="404 Page Not Found | Fruit Gamer" 
+  description="The requested routing address does not exist on this pipeline."
+>
+  <Navbar />
+
+  <main class="w-full bg-canvas py-24 transition-colors duration-200 flex flex-col items-center justify-center min-h-[60vh]">
+    <div class="max-w-[500px] w-full px-4 text-center">
+      
+      <!-- Friendly Icon -->
+      <div class="mb-6 flex flex-col items-center">
+        <div class="w-20 h-20 flex items-center justify-center rounded-full bg-warning/10 text-warning mb-4 animate-bounce">
+          <!-- Magnifying glass looking for rolling fruit -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <path d="M11 8a3 3 0 0 0-3 3"></path>
+          </svg>
+        </div>
+        <span class="font-mono text-xs uppercase text-warning tracking-wider font-semibold">Oops! Page Not Found</span>
+        <h1 class="font-sans font-bold text-3xl tracking-tight text-ink mt-2 mb-3">
+          Lost Fruit!
+        </h1>
+        <p class="text-body text-base leading-relaxed max-w-sm">
+          The page you are looking for has rolled away! Let's get you back to the game so you can keep merging and make that giant watermelon!
+        </p>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-center gap-3">
+        <a 
+          href="/" 
+          class="h-11 px-6 bg-ink text-canvas hover:bg-body font-semibold text-sm rounded-full transition-all duration-150 flex items-center shadow-sm"
+        >
+          Back to the Game
+        </a>
+        <a 
+          href="/contact" 
+          class="h-11 px-6 bg-canvas text-ink hover:bg-canvas-soft-2 border border-hairline font-semibold text-sm rounded-full transition-all duration-150 flex items-center shadow-sm"
+        >
+          Ask for Help
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

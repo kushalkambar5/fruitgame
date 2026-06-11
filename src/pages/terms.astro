@@ -1,0 +1,74 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout 
+  title="Terms & Conditions | Fruit Gamer - The Ultimate Developer Merge Game" 
+  description="Review the terms and conditions for playing Fruit Gamer. Standard usage policies for our online web game."
+>
+  <Navbar />
+
+  <main class="w-full bg-canvas py-16 md:py-24 transition-colors duration-200">
+    <div class="max-w-[800px] mx-auto px-4 md:px-6">
+      
+      <!-- Header -->
+      <div class="mb-10 text-left border-b border-hairline pb-8">
+        <span class="font-mono text-xs uppercase text-mute tracking-wider font-semibold">GET /terms-and-conditions</span>
+        <h1 class="font-sans font-semibold text-3xl md:text-4xl tracking-tight text-ink mt-2 mb-4">
+          Terms & Conditions
+        </h1>
+        <p class="text-body text-sm max-w-xl leading-relaxed">
+          Last updated: June 11, 2026. Standard terms for users accessing our web applications.
+        </p>
+      </div>
+
+      <!-- Legal content -->
+      <article class="prose prose-sm sm:prose max-w-none text-body font-sans leading-relaxed flex flex-col gap-6 select-text">
+        <section>
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">1. Agreement to Terms</h2>
+          <p>
+            By accessing and playing the <strong>Fruit Gamer</strong> web application, you agree to comply with and be bound by these standard Terms & Conditions. If you do not agree, please do not use or access the site.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">2. Intellectual Property</h2>
+          <p>
+            The code physics logic, user interface components, and site layouts are the proprietary assets of Fruit Gamer. Matter.js is used under its open-source license. Fruit names, symbols, and emojis belong to their respective unicode standard descriptions.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">3. Permitted Use</h2>
+          <p>
+            Players are granted a limited license to access and play the web game online. You may not:
+          </p>
+          <ul class="list-disc pl-5 mt-2 space-y-1">
+            <li>Decompile or extract the engine scripts in an attempt to replicate the core service on commercial domains.</li>
+            <li>Run scripts or bots designed to automatically inject scores or bypass physics restrictions.</li>
+            <li>Incorporate the game canvas into external websites using iframes without express permission.</li>
+          </ul>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">4. Disclaimer of Warranties</h2>
+          <p>
+            The game and its rendering loop are provided on an "as-is" and "as-available" basis. We do not warrant that gameplay will be uninterrupted, error-free, or free of local cache clearings. We are not responsible for any lost high scores caused by database clearing, browser resets, or software crashes.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">5. Governing Law</h2>
+          <p>
+            These terms shall be governed by and construed in accordance with standard international web compliance guidelines.
+          </p>
+        </section>
+      </article>
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

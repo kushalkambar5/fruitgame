@@ -1,0 +1,77 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout 
+  title="About Us | Fruit Gamer - The Ultimate Developer Merge Game" 
+  description="Discover the history, tech stack, and development pipeline mechanics behind Fruit Gamer. Built for developers, styled by Vercel."
+>
+  <Navbar />
+
+  <main class="w-full bg-canvas py-16 md:py-24 transition-colors duration-200">
+    <div class="max-w-[800px] mx-auto px-4 md:px-6">
+      
+      <!-- Path breadcrumb/header -->
+      <div class="mb-10 text-left border-b border-hairline pb-8">
+        <span class="font-mono text-xs uppercase text-mute tracking-wider font-semibold">GET /about-us</span>
+        <h1 class="font-sans font-semibold text-3xl md:text-4xl tracking-tight text-ink mt-2 mb-4">
+          About Fruit Gamer
+        </h1>
+        <p class="text-body text-sm max-w-xl leading-relaxed">
+          The story of a developer-centric physics merge experiment, built for clean web performance and fun.
+        </p>
+      </div>
+
+      <!-- Article content styled with Vercel guidelines -->
+      <article class="prose prose-sm sm:prose max-w-none text-body font-sans leading-relaxed flex flex-col gap-6 select-text">
+        <section>
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">Our Mission</h2>
+          <p>
+            At <strong>Fruit Gamer</strong>, we believe that web gaming should be fast, elegant, and completely free of disruptive ads. We took the highly engaging, physics-based fruit merge formula (popularized by Suika Game) and redesigned it from the ground up for developers and tech enthusiasts. By surrounding the core physics container with a sleek dashboard HUD, command logs, and clean grid panels, we created a game that feels right at home on a second monitor.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">The Technology Stack</h2>
+          <p>
+            Fruit Gamer is built utilizing cutting-edge web tools to ensure sub-millisecond input response times and steady 60fps rendering:
+          </p>
+          <ul class="list-disc pl-5 mt-2 space-y-2 text-sm font-mono">
+            <li>
+              <strong class="text-ink">Astro (v6)</strong>: Provides the ultra-fast, zero-JS-by-default MPA framework allowing excellent SEO indexability.
+            </li>
+            <li>
+              <strong class="text-ink">Matter.js</strong>: Powers the 2D rigid body physics simulations, rendering friction, gravity, restitution (bounce), and collisions.
+            </li>
+            <li>
+              <strong class="text-ink">Tailwind CSS (v4)</strong>: Handles our fluid layout mechanics and the custom light/dark color palettes.
+            </li>
+            <li>
+              <strong class="text-ink">Web Audio API</strong>: Synthesizes procedural retro tones on-the-fly, eliminating heavy audio asset loading.
+            </li>
+          </ul>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">Merge Pipeline Mechanics</h2>
+          <p>
+            In Fruit Gamer, every fruit represents a step in a deployment pipeline. Merging small fruits (like code commits) climbs the hierarchy to release large assets (like the production-ready Watermelon). 
+            Managing your container space is critical. If your stacked assets overflow the boundary line, the buffer overflows, triggering a system crash (Game Over).
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6 bg-canvas-soft border p-6 rounded-lg">
+          <h2 class="text-lg font-semibold text-ink tracking-tight mb-2">Open Source Philosophy</h2>
+          <p class="text-xs sm:text-sm">
+            We are dedicated to maintaining a clean web presence. That means no trackers, no cookies, and no annoying video ads. Just premium gameplay, responsive mechanics, and fun challenges. Thank you for playing, merging, and deploying with us!
+          </p>
+        </section>
+      </article>
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

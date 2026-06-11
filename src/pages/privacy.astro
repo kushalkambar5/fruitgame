@@ -1,0 +1,77 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout 
+  title="Privacy Policy | Fruit Gamer - The Ultimate Developer Merge Game" 
+  description="Read the privacy policy of Fruit Gamer. Learn how we handle local scores, state storage, and game preferences."
+>
+  <Navbar />
+
+  <main class="w-full bg-canvas py-16 md:py-24 transition-colors duration-200">
+    <div class="max-w-[800px] mx-auto px-4 md:px-6">
+      
+      <!-- Header -->
+      <div class="mb-10 text-left border-b border-hairline pb-8">
+        <span class="font-mono text-xs uppercase text-mute tracking-wider font-semibold">GET /privacy-policy</span>
+        <h1 class="font-sans font-semibold text-3xl md:text-4xl tracking-tight text-ink mt-2 mb-4">
+          Privacy Policy
+        </h1>
+        <p class="text-body text-sm max-w-xl leading-relaxed">
+          Last updated: June 11, 2026. Review how we manage preferences and platform storage.
+        </p>
+      </div>
+
+      <!-- Legal content -->
+      <article class="prose prose-sm sm:prose max-w-none text-body font-sans leading-relaxed flex flex-col gap-6 select-text">
+        <section>
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">1. Data Storage</h2>
+          <p>
+            At Fruit Gamer, we do not require user accounts, email registration, or sign-ins to enjoy the core merge game. All data generated during gameplay (such as scores, active game modes, and theme selections) is stored directly inside your browser's local storage database:
+          </p>
+          <ul class="list-disc pl-5 mt-2 space-y-1">
+            <li><strong>High Scores</strong>: Keys starting with <code>fg_highscore_</code> save your high scores for Classic, Zen, and Time Attack.</li>
+            <li><strong>Active Mode</strong>: Key <code>fg_active_mode</code> stores your last selected gameplay environment.</li>
+            <li><strong>Dark Mode Status</strong>: Key <code>theme</code> stores your preference for Light or Dark theme.</li>
+          </ul>
+          <p class="mt-2 text-xs text-mute font-mono bg-canvas-soft border p-3 rounded">
+            This data never leaves your device and is not synchronized with any external databases.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">2. Third-Party Services and Analytics</h2>
+          <p>
+            We strive to provide a clean, ad-free environment. This website does not display third-party pop-ups, banner commercials, or video ads. We do not use third-party analytics trackers or tracking cookies that follow your browsing habits across other platforms.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">3. External Links</h2>
+          <p>
+            Our footer contains links to external platforms such as GitHub and Vercel. We do not control and are not responsible for the privacy practices, content, or policies of third-party platforms.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">4. Security</h2>
+          <p>
+            Because all high scores and configuration parameters reside strictly inside your local browser context, security is governed by your browser's cookie policies. Clearing browser cache or local storage will wipe out all local high scores and preferences.
+          </p>
+        </section>
+
+        <section class="border-t border-hairline pt-6">
+          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">5. Changes to This Policy</h2>
+          <p>
+            We reserve the right to modify this privacy policy as the platform evolves. Any future changes will be updated on this page with a revised date stamp.
+          </p>
+        </section>
+      </article>
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

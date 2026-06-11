@@ -1,0 +1,68 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout 
+  title="500 Internal Server Error | Fruit Gamer" 
+  description="Internal pipeline failure detected during application compilation."
+>
+  <Navbar />
+
+  <main class="w-full bg-canvas py-24 transition-colors duration-200 flex flex-col items-center justify-center min-h-[60vh]">
+    <div class="max-w-[500px] w-full px-4 text-center">
+      
+      <!-- Error Code Display -->
+      <div class="mb-6 flex flex-col items-center">
+        <div class="w-16 h-16 flex items-center justify-center rounded-full bg-error/10 text-error mb-4 animate-bounce">
+          <!-- Terminal / Crash icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+        </div>
+        <span class="font-mono text-xs uppercase text-error tracking-wider font-semibold">500 PIPELINE_CRASH</span>
+        <h1 class="font-sans font-semibold text-3xl tracking-tight text-ink mt-2 mb-3">
+          Internal Server Panic
+        </h1>
+        <p class="text-body text-sm leading-relaxed max-w-sm">
+          An unexpected exception was thrown while executing the physics pipeline runner.
+        </p>
+      </div>
+
+      <!-- Mock Telemetry Logs -->
+      <div class="border border-hairline bg-black text-gray-300 p-4 rounded-lg text-left font-mono text-[11px] mb-8 shadow-sm">
+        <div class="text-zinc-500 border-b border-zinc-800 pb-1.5 mb-2 flex justify-between">
+          <span>DEBUG METRICS LOG</span>
+          <span>FATAL EXCEPTION</span>
+        </div>
+        <div class="space-y-1">
+          <div class="text-zinc-400">[info] Initializing stack check...</div>
+          <div class="text-error font-bold">[fatal] STACK_OVERFLOW_EXCEEDED</div>
+          <div class="text-zinc-500">└─ Matter.js engine coordinates out of bounds.</div>
+          <div class="text-zinc-500">└─ State code: 500 Internal Error</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-center gap-3">
+        <a 
+          href="/" 
+          class="h-10 px-6 bg-ink text-canvas hover:bg-body font-medium text-sm rounded-full transition-all duration-150 flex items-center"
+        >
+          Restart Pipeline
+        </a>
+        <a 
+          href="/contact" 
+          class="h-10 px-6 bg-canvas text-ink hover:bg-canvas-soft-2 border border-hairline font-medium text-sm rounded-full transition-all duration-150 flex items-center"
+        >
+          Report Crash
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
