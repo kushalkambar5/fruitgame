@@ -34,6 +34,20 @@ export interface Particle {
   maxLife: number;
 }
 
+export interface MergeAnimation {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  emoji: string;
+  radius: number;
+  targetX: number;
+  targetY: number;
+  nextIndex: number;
+  progress: number;
+  duration: number;
+}
+
 export interface GameStats {
   score: number;
   highScore: number;
@@ -181,10 +195,12 @@ export class GameEngine {
   };
 
   private gameMode: 'classic' | 'zen' | 'time' = 'classic';
-  private gameOver: boolean = false;
+  public gameOver: boolean = false;
+  private isDestroyed: boolean = false;
+  private animationFrameId: number | null = null;
   private timeRemaining: number = 120; // 2 minutes for Time Attack
   private timeIntervalId: number | null = null;
-  private redLineY: number = 100;
+  private redLineY: number = 120; // Align with top of bucket
   private redLineWarning: boolean = false;
   private redLineTimer: number = 0; // Duration stationary fruit is above red line
   private dropCooldown: boolean = false;
@@ -199,6 +215,7 @@ export class GameEngine {
 
   // Animations & Particles
   private particles: Particle[] = [];
+  private activeMerges: MergeAnimation[] = [];
 
   // Listeners
   private onLogCallback: (msg: string, type: LogType) => void;
@@ -222,12 +239,6 @@ export class GameEngine {
     this.onGameOverCallback = callbacks.onGameOver;
     this.onTimerCallback = callbacks.onTimer;
 
-    // Load Highscore
-    const savedHighScore = localStorage.getItem('fg_highscore');
-    if (savedHighScore) {
-      this.stats.highScore = parseInt(savedHighScore, 10);
-    }
-
     // Initialize Matter.js
     this.engine = Matter.Engine.create({
       gravity: { y: 1.3 } // Satisfying gravity
@@ -241,9 +252,10 @@ export class GameEngine {
 
   private setupWorld() {
     const wallOptions = { isStatic: true, friction: 0.1, restitution: 0.2 };
-    const bottomWall = Matter.Bodies.rectangle(220, 650, 440, 20, wallOptions);
-    const leftWall = Matter.Bodies.rectangle(-10, 320, 20, 640, wallOptions);
-    const rightWall = Matter.Bodies.rectangle(450, 320, 20, 640, wallOptions);
+    // Bucket boundaries: bottom wall at y = 614, side walls at x = 36 and x = 404
+    const bottomWall = Matter.Bodies.rectangle(220, 614, 328, 8, wallOptions);
+    const leftWall = Matter.Bodies.rectangle(36, 365, 8, 490, wallOptions);
+    const rightWall = Matter.Bodies.rectangle(404, 365, 8, 490, wallOptions);
 
     // Label walls as static
     (bottomWall as any).label = 'wall';
@@ -257,8 +269,6 @@ export class GameEngine {
     // Listen for collisions to handle merges
     Matter.Events.on(this.engine, 'collisionStart', (event) => {
       const pairs = event.pairs;
-      let scoreIncrement = 0;
-      let newMerges: { x: number; y: number; index: number }[] = [];
 
       for (let i = 0; i < pairs.length; i++) {
         const { bodyA, bodyB } = pairs[i];
@@ -287,57 +297,25 @@ export class GameEngine {
           const x = (bodyA.position.x + bodyB.position.x) / 2;
           const y = (bodyA.position.y + bodyB.position.y) / 2;
 
-          newMerges.push({ x, y, index });
+          const prevFruit = FRUITS[index];
+          this.activeMerges.push({
+            x1: bodyA.position.x,
+            y1: bodyA.position.y,
+            x2: bodyB.position.x,
+            y2: bodyB.position.y,
+            emoji: prevFruit.emoji,
+            radius: prevFruit.radius,
+            targetX: x,
+            targetY: y,
+            nextIndex: index + 1,
+            progress: 0,
+            duration: 18 // 18 frames (~300ms)
+          });
 
-          // Remove old bodies
+          // Remove old bodies immediately from the physics world
           Matter.Composite.remove(this.engine.world, bodyA);
           Matter.Composite.remove(this.engine.world, bodyB);
         }
-      }
-
-      if (newMerges.length > 0) {
-        newMerges.forEach((m) => {
-          this.spawnFruit(m.x, m.y, m.index + 1);
-          
-          const fruit = FRUITS[m.index + 1];
-          const prevFruit = FRUITS[m.index];
-          
-          // Combo handling
-          this.stats.combo++;
-          const comboBonus = this.stats.combo > 1 ? this.stats.combo - 1 : 0;
-          const pointsGained = fruit.score + comboBonus;
-          this.stats.score += pointsGained;
-
-          // Play Sound
-          if (this.stats.combo > 1) {
-            this.sounds.playCombo(this.stats.combo);
-            this.log(`[COMBO] x${this.stats.combo}! Merged ${prevFruit.emoji} + ${prevFruit.emoji} -> ${fruit.emoji} (+${pointsGained} score)`, 'success');
-          } else {
-            this.sounds.playMerge();
-            this.log(`[MERGE] ${prevFruit.emoji} + ${prevFruit.emoji} successfully compiled into ${fruit.emoji} (+${pointsGained} score)`, 'success');
-          }
-
-          // Trigger particle explosion
-          this.createExplosion(m.x, m.y, fruit.color);
-
-          // Earn Power-ups based on merges
-          if (m.index + 1 >= 5 && Math.random() < 0.3) {
-            this.stats.shakeCharges++;
-            this.log(`[PIPELINE] High-tier merge! Earned 1 "shake" charge.`, 'info');
-          }
-          if (m.index + 1 >= 7 && Math.random() < 0.4) {
-            this.stats.gcCharges++;
-            this.log(`[PIPELINE] High-tier merge! Earned 1 "gc" charge.`, 'info');
-          }
-          if (m.index + 1 === 9) {
-            this.stats.hotfixCharges++;
-            this.log(`[PIPELINE] Melon created! Earned 1 "hotfix" charge.`, 'info');
-          }
-
-          this.updateStats();
-        });
-
-        // Reset combo if no new collision happens for a bit (handled in frame update)
       }
     });
   }
@@ -351,7 +329,7 @@ export class GameEngine {
   private updateStats() {
     if (this.stats.score > this.stats.highScore) {
       this.stats.highScore = this.stats.score;
-      localStorage.setItem('fg_highscore', this.stats.highScore.toString());
+      localStorage.setItem(`fg_highscore_${this.gameMode}`, this.stats.highScore.toString());
     }
     // Simple level progression based on score
     this.stats.level = Math.floor(this.stats.score / 500) + 1;
@@ -361,12 +339,25 @@ export class GameEngine {
   public start(mode: 'classic' | 'zen' | 'time' = 'classic') {
     this.gameMode = mode;
     this.gameOver = false;
+    this.isDestroyed = false;
     this.stats.score = 0;
     this.stats.combo = 0;
+    this.activeMerges = [];
+
+    // Load Highscore for specific mode
+    const savedHighScore = localStorage.getItem(`fg_highscore_${mode}`);
+    this.stats.highScore = savedHighScore ? parseInt(savedHighScore, 10) : 0;
+
     this.stats.shakeCharges = 1;
     this.stats.gcCharges = mode === 'zen' ? 1 : 0;
     this.stats.hotfixCharges = 0;
     this.updateStats();
+
+    // Cancel existing animation loop if any
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
 
     // Reset Engine world (keep only walls)
     const bodies = Matter.Composite.allBodies(this.engine.world);
@@ -409,9 +400,9 @@ export class GameEngine {
   private spawnFruit(x: number, y: number, fruitIndex: number, isDynamic: boolean = true): Matter.Body {
     const fruit = FRUITS[fruitIndex];
     const options = {
-      restitution: 0.18, // bouncy but not crazy
-      friction: 0.05,
-      frictionAir: 0.015,
+      restitution: 0.12, // slightly lower bounce for more solid feeling
+      friction: 0.12, // increased friction to slow down rolling
+      frictionAir: 0.02, // slightly increased air friction
       label: 'fruit'
     };
 
@@ -428,10 +419,10 @@ export class GameEngine {
     if (this.gameOver) return;
     if (this.dropCooldown) return;
 
-    // Boundary limits
+    // Boundary limits (constrained inside the bucket walls)
     const fruit = FRUITS[this.nextFruitIndex];
-    const leftLimit = fruit.radius + 10;
-    const rightLimit = this.width - fruit.radius - 10;
+    const leftLimit = 40 + fruit.radius;
+    const rightLimit = 400 - fruit.radius;
     const dropX = Math.max(leftLimit, Math.min(clickX, rightLimit));
 
     this.sounds.playDrop();
@@ -579,12 +570,12 @@ export class GameEngine {
 
   // Main rendering loop
   private animate() {
-    if (this.gameOver) return;
+    if (this.gameOver || this.isDestroyed) return;
 
     this.updateLogic();
     this.draw();
 
-    requestAnimationFrame(() => this.animate());
+    this.animationFrameId = requestAnimationFrame(() => this.animate());
   }
 
   // Update game variables
@@ -603,6 +594,56 @@ export class GameEngine {
       }
     }
 
+    // 1b. Update Merge Animations
+    for (let i = this.activeMerges.length - 1; i >= 0; i--) {
+      const m = this.activeMerges[i];
+      m.progress += 1 / m.duration;
+      if (m.progress >= 1.0) {
+        // Spawn the new merged fruit
+        this.spawnFruit(m.targetX, m.targetY, m.nextIndex);
+
+        const fruit = FRUITS[m.nextIndex];
+        const prevFruit = FRUITS[m.nextIndex - 1];
+
+        // Combo handling
+        this.stats.combo++;
+        const comboBonus = this.stats.combo > 1 ? this.stats.combo - 1 : 0;
+        const pointsGained = fruit.score + comboBonus;
+        this.stats.score += pointsGained;
+
+        // Play Sound
+        if (this.stats.combo > 1) {
+          this.sounds.playCombo(this.stats.combo);
+          this.log(`[COMBO] x${this.stats.combo}! Merged ${prevFruit.emoji} + ${prevFruit.emoji} -> ${fruit.emoji} (+${pointsGained} score)`, 'success');
+        } else {
+          this.sounds.playMerge();
+          this.log(`[MERGE] ${prevFruit.emoji} + ${prevFruit.emoji} successfully compiled into ${fruit.emoji} (+${pointsGained} score)`, 'success');
+        }
+
+        // Trigger particle explosion
+        this.createExplosion(m.targetX, m.targetY, fruit.color);
+
+        // Earn Power-ups based on merges
+        if (m.nextIndex >= 5 && Math.random() < 0.3) {
+          this.stats.shakeCharges++;
+          this.log(`[PIPELINE] High-tier merge! Earned 1 "shake" charge.`, 'info');
+        }
+        if (m.nextIndex >= 7 && Math.random() < 0.4) {
+          this.stats.gcCharges++;
+          this.log(`[PIPELINE] High-tier merge! Earned 1 "gc" charge.`, 'info');
+        }
+        if (m.nextIndex === 9) {
+          this.stats.hotfixCharges++;
+          this.log(`[PIPELINE] Melon created! Earned 1 "hotfix" charge.`, 'info');
+        }
+
+        this.updateStats();
+
+        // Remove the finished merge animation
+        this.activeMerges.splice(i, 1);
+      }
+    }
+
     // 2. Combo Decay
     // If no merges happen for 3 seconds, reset combo
     // Matter.Events can trigger merge. We decay combo in constructor or track time
@@ -616,6 +657,15 @@ export class GameEngine {
 
     bodies.forEach((body) => {
       if ((body as any).label === 'fruit') {
+        // Apply angular damping to slow down the fast rolling
+        Matter.Body.setAngularVelocity(body, body.angularVelocity * 0.90);
+        
+        // Apply minor horizontal damping so they don't slide endlessly like on ice
+        Matter.Body.setVelocity(body, { 
+          x: body.velocity.x * 0.99, 
+          y: body.velocity.y 
+        });
+
         const speed = body.speed;
         if (speed > 0.4) {
           allStationary = false;
@@ -674,21 +724,52 @@ export class GameEngine {
     this.ctx.fillStyle = isDark ? '#0f0f0f' : '#ffffff';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Draw grid lines for Vercel developer dashboard look
+    // Draw grid lines inside the bucket area for Vercel developer dashboard look
     this.ctx.strokeStyle = isDark ? '#1c1c1c' : '#f0f0f0';
     this.ctx.lineWidth = 1;
-    for (let x = 40; x < this.width; x += 40) {
+    // Vertical grid lines
+    for (let x = 80; x < 400; x += 40) {
       this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.height);
+      this.ctx.moveTo(x, 120);
+      this.ctx.lineTo(x, 610);
       this.ctx.stroke();
     }
-    for (let y = 40; y < this.height; y += 40) {
+    // Horizontal grid lines
+    for (let y = 160; y < 610; y += 40) {
       this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.width, y);
+      this.ctx.moveTo(40, y);
+      this.ctx.lineTo(400, y);
       this.ctx.stroke();
     }
+
+    // Draw the visible U-shaped bucket (half-cut view bucket)
+    this.ctx.save();
+    // Glassy background fill inside the bucket
+    this.ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.015)';
+    this.ctx.beginPath();
+    this.ctx.moveTo(40, 120);
+    this.ctx.lineTo(40, 600);
+    this.ctx.arcTo(40, 610, 50, 610, 10);
+    this.ctx.lineTo(390, 610);
+    this.ctx.arcTo(400, 610, 400, 600, 10);
+    this.ctx.lineTo(400, 120);
+    this.ctx.closePath();
+    this.ctx.fill();
+
+    // Wall borders
+    this.ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.12)';
+    this.ctx.lineWidth = 6;
+    this.ctx.lineCap = 'round';
+    this.ctx.lineJoin = 'round';
+    this.ctx.beginPath();
+    this.ctx.moveTo(40, 120);
+    this.ctx.lineTo(40, 600);
+    this.ctx.arcTo(40, 610, 50, 610, 10);
+    this.ctx.lineTo(390, 610);
+    this.ctx.arcTo(400, 610, 400, 600, 10);
+    this.ctx.lineTo(400, 120);
+    this.ctx.stroke();
+    this.ctx.restore();
 
     // Draw active fruits
     const bodies = Matter.Composite.allBodies(this.engine.world);
@@ -701,28 +782,47 @@ export class GameEngine {
         this.ctx.translate(body.position.x, body.position.y);
         this.ctx.rotate(body.angle);
 
-        // Draw outer circular shell
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, fruit.radius, 0, Math.PI * 2);
-        this.ctx.fillStyle = fruit.color;
-        this.ctx.globalAlpha = isDark ? 0.25 : 0.15;
-        this.ctx.fill();
-
-        // Draw hairline ring around fruit
-        this.ctx.strokeStyle = fruit.color;
-        this.ctx.lineWidth = 1.5;
-        this.ctx.globalAlpha = 0.9;
-        this.ctx.stroke();
-
-        // Draw Fruit Emoji centered
+        // Draw Fruit Emoji centered (no circular background or outline)
         this.ctx.globalAlpha = 1.0;
-        this.ctx.font = `${fruit.radius * 1.2}px Inter, sans-serif`;
+        this.ctx.font = `${fruit.radius * 1.8}px "Inter", sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillText(fruit.emoji, 0, 0);
 
         this.ctx.restore();
       }
+    });
+
+    // Draw active merges (transition animation)
+    this.activeMerges.forEach((m) => {
+      // Interpolate positions from start to midpoint
+      const x1 = m.x1 + (m.targetX - m.x1) * m.progress;
+      const y1 = m.y1 + (m.targetY - m.y1) * m.progress;
+      const x2 = m.x2 + (m.targetX - m.x2) * m.progress;
+      const y2 = m.y2 + (m.targetY - m.y2) * m.progress;
+
+      // Shrink size as they get closer to the center
+      const currentRadius = m.radius * (1 - m.progress * 0.4); // shrinks by up to 40%
+
+      // Draw fruit 1
+      this.ctx.save();
+      this.ctx.translate(x1, y1);
+      this.ctx.font = `${currentRadius * 1.8}px "Inter", sans-serif`;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.globalAlpha = 1 - m.progress * 0.3; // fade slightly
+      this.ctx.fillText(m.emoji, 0, 0);
+      this.ctx.restore();
+
+      // Draw fruit 2
+      this.ctx.save();
+      this.ctx.translate(x2, y2);
+      this.ctx.font = `${currentRadius * 1.8}px "Inter", sans-serif`;
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.globalAlpha = 1 - m.progress * 0.3; // fade slightly
+      this.ctx.fillText(m.emoji, 0, 0);
+      this.ctx.restore();
     });
 
     // Draw particles
@@ -739,7 +839,7 @@ export class GameEngine {
     // Draw Dropper Preview Guide Line & Next Fruit
     if (!this.gameOver && !this.hotfixActive) {
       const activeFruit = FRUITS[this.nextFruitIndex];
-      const nextX = Math.max(activeFruit.radius + 10, Math.min(this.previewX, this.width - activeFruit.radius - 10));
+      const nextX = Math.max(40 + activeFruit.radius, Math.min(this.previewX, 400 - activeFruit.radius));
 
       this.ctx.save();
       
@@ -747,23 +847,14 @@ export class GameEngine {
       this.ctx.beginPath();
       this.ctx.setLineDash([4, 6]);
       this.ctx.moveTo(nextX, 85);
-      this.ctx.lineTo(nextX, this.height);
+      this.ctx.lineTo(nextX, 610); // Stop at bottom of bucket
       this.ctx.strokeStyle = isDark ? '#444444' : '#cccccc';
       this.ctx.lineWidth = 1.5;
       this.ctx.stroke();
 
-      // Dropper Fruit placeholder (transparent preview at top)
-      this.ctx.beginPath();
-      this.ctx.arc(nextX, 50, activeFruit.radius, 0, Math.PI * 2);
-      this.ctx.fillStyle = activeFruit.color;
-      this.ctx.globalAlpha = 0.2;
-      this.ctx.fill();
-      this.ctx.strokeStyle = activeFruit.color;
-      this.ctx.lineWidth = 1;
-      this.ctx.globalAlpha = 0.6;
-      this.ctx.stroke();
+      // Dropper Fruit placeholder (only emoji, no circle)
       this.ctx.globalAlpha = 0.7;
-      this.ctx.font = `${activeFruit.radius * 1.2}px Inter, sans-serif`;
+      this.ctx.font = `${activeFruit.radius * 1.8}px "Inter", sans-serif`;
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
       this.ctx.fillText(activeFruit.emoji, nextX, 50);
@@ -793,8 +884,8 @@ export class GameEngine {
       this.ctx.save();
       this.ctx.beginPath();
       this.ctx.setLineDash([6, 4]);
-      this.ctx.moveTo(0, this.redLineY);
-      this.ctx.lineTo(this.width, this.redLineY);
+      this.ctx.moveTo(40, this.redLineY);
+      this.ctx.lineTo(400, this.redLineY);
       
       if (this.redLineWarning) {
         // Flash red line
@@ -813,7 +904,7 @@ export class GameEngine {
       this.ctx.font = '9px JetBrains Mono, monospace';
       this.ctx.fillStyle = this.redLineWarning ? '#ee0000' : (isDark ? '#888888' : '#777777');
       this.ctx.textAlign = 'right';
-      this.ctx.fillText('BUFFER OVERFLOW LIMIT', this.width - 12, this.redLineY - 6);
+      this.ctx.fillText('BUFFER OVERFLOW LIMIT', 388, this.redLineY - 6);
       this.ctx.restore();
     }
   }
@@ -829,16 +920,24 @@ export class GameEngine {
     }
   }
 
-  // Update mouse position for dropper preview
+  // Update mouse position for dropper preview (constrained inside the bucket walls)
   public updatePreviewX(x: number) {
-    this.previewX = x;
+    const activeFruit = FRUITS[this.nextFruitIndex];
+    this.previewX = Math.max(40 + activeFruit.radius, Math.min(x, 400 - activeFruit.radius));
   }
 
   // Clear running timers/contexts
   public destroy() {
+    this.isDestroyed = true;
     if (this.timeIntervalId) {
       window.clearInterval(this.timeIntervalId);
+      this.timeIntervalId = null;
+    }
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
     }
     Matter.Runner.stop(this.runner);
+    this.activeMerges = [];
   }
 }

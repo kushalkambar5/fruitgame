@@ -10,6 +10,8 @@ const {
 	title = "Fruit Gamer | The Ultimate Developer Merge Game", 
 	description = "Merge code commits and release pipelines to ship the giant Watermelon! A physics-based, addictive merge game styled like a premium developer dashboard."
 } = Astro.props;
+
+const canonicalUrl = "https://fruitgamer.com" + Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -21,24 +23,34 @@ const {
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 		
+		<!-- Canonical Link -->
+		<link rel="canonical" href={canonicalUrl} />
+
 		<!-- Primary Meta Tags -->
 		<title>{title}</title>
 		<meta name="title" content={title} />
 		<meta name="description" content={description} />
-		<meta name="keywords" content="fruit gamer, fruit game, suika game, watermelon game, merge game, developer game, physics game, vercel style, matter.js" />
+		<meta name="keywords" content="Fruit Gamer, fruit merge game, fruit merge game online, fruit merge game free, free fruit merge game, fruit merge game online free, fruit merge game unblocked, watermelon fruit merge game, best fruit merge game, free online fruit merge game, fruit merge game no ads, fruit merge game switch, fruit merge game original, fruit merge game name, suika game, watermelon game, physics merge game" />
 		<meta name="author" content="fruitgamer.com" />
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
-		<meta property="og:url" content="https://fruitgamer.com/" />
+		<meta property="og:url" content={canonicalUrl} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
+		<meta property="og:image" content="https://fruitgamer.com/og-image.png" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="Fruit Gamer - The Ultimate Developer Merge Game" />
+		<meta property="og:site_name" content="Fruit Gamer" />
+		<meta property="og:locale" content="en_US" />
 		
 		<!-- Twitter -->
 		<meta property="twitter:card" content="summary_large_image" />
-		<meta property="twitter:url" content="https://fruitgamer.com/" />
+		<meta property="twitter:url" content={canonicalUrl} />
 		<meta property="twitter:title" content={title} />
 		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content="https://fruitgamer.com/og-image.png" />
 
 		<!-- Google Fonts -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />

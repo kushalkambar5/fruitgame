@@ -34,12 +34,28 @@ import { FRUITS } from './game';
     </div>
   </div>
 
-  <!-- Main Grid: Game Board + Dashboard Panels -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+  <!-- Three-Column Layout: Evolution Path + Centered Playground + Vertical Stats -->
+  <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 w-full">
     
-    <!-- Column A (lg:cols-6): Game Board Container -->
-    <div class="lg:col-span-6 flex flex-col items-center justify-center">
-      <div class="relative border border-hairline bg-canvas rounded-xl p-3 shadow-md flex items-center justify-center overflow-hidden w-full max-w-[466px]">
+    <!-- Column A (lg:w-[220px]): Evolution Path Legend -->
+    <div class="hidden lg:flex flex-col gap-3 w-[220px] border border-hairline bg-canvas p-4 rounded-xl shadow-sm">
+      <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold mb-2">Evolution Path</span>
+      <div class="flex flex-col gap-2">
+        {FRUITS.map((fruit, idx) => (
+          <div class="flex items-center justify-between border-b border-hairline/50 pb-1.5 last:border-0 last:pb-0">
+            <div class="flex items-center gap-2">
+              <span class="text-xl select-none">{fruit.emoji}</span>
+              <span class="text-xs font-sans font-medium text-ink">{fruit.name}</span>
+            </div>
+            <span class="text-[9px] font-mono text-mute bg-canvas-soft-2 px-1.5 py-0.5 rounded border border-hairline">+{fruit.score}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Column B: Game Board Container (Playground in the middle) -->
+    <div class="flex flex-col items-center justify-center w-full max-w-[466px]">
+      <div class="relative border border-hairline bg-canvas rounded-xl p-3 shadow-md flex items-center justify-center overflow-hidden w-full">
         
         <!-- Game Canvas -->
         <canvas 
@@ -79,49 +95,46 @@ import { FRUITS } from './game';
       </div>
 
       <!-- Cooldown Loader/Prompt under Canvas -->
-      <div class="w-full max-w-[466px] mt-2 px-1 flex items-center justify-between text-xs text-mute font-mono">
+      <div class="w-full mt-2 px-1 flex items-center justify-between text-xs text-mute font-mono">
         <span>DROP: MOUSE OVER CONTAINER + CLICK</span>
         <span id="cooldown-indicator" class="text-success hidden">● READY TO DROP</span>
       </div>
     </div>
 
-    <!-- Column B (lg:cols-6): Control Panel Dashboard -->
-    <div class="lg:col-span-6 flex flex-col gap-6 w-full">
+    <!-- Column C: Control Panel Dashboard (Stacked vertically on the right) -->
+    <div class="flex flex-col gap-4 w-full max-w-[466px] lg:w-[220px]">
+      <!-- Panel 1: Score -->
+      <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Score</span>
+        <span id="metric-score" class="text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">0</span>
+      </div>
       
-      <!-- Metrics Panels -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <!-- Panel 1: Score -->
-        <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
-          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Score</span>
-          <span id="metric-score" class="text-3xl font-semibold tracking-[-1.28px] text-ink">0</span>
-        </div>
-        
-        <!-- Panel 2: High Score -->
-        <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
-          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">High Score</span>
-          <span id="metric-highscore" class="text-3xl font-semibold tracking-[-1.28px] text-ink">0</span>
-        </div>
+      <!-- Panel 2: High Score -->
+      <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">High Score</span>
+        <span id="metric-highscore" class="text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">0</span>
+      </div>
 
-        <!-- Panel 3: Combo -->
-        <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
-          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Combo</span>
-          <div class="flex items-baseline gap-1">
-            <span id="metric-combo" class="text-3xl font-semibold tracking-[-1.28px] text-ink">x0</span>
-          </div>
-        </div>
+      <!-- Panel 3: Combo -->
+      <div class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Combo</span>
+        <span id="metric-combo" class="text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">x0</span>
+      </div>
 
-        <!-- Panel 4: Next Asset -->
-        <div class="border border-hairline bg-canvas p-3 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
-          <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Next Fruit</span>
-          <div class="flex items-center justify-between mt-1">
-            <span id="metric-next-emoji" class="text-3xl">🍒</span>
-            <span id="metric-next-name" class="font-sans font-medium text-xs text-body">Cherry</span>
-          </div>
+      <!-- Panel 4: Next Asset -->
+      <div class="border border-hairline bg-canvas p-3 rounded-lg shadow-sm flex flex-col justify-between h-[96px]">
+        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Next Fruit</span>
+        <div class="flex items-center justify-between mt-1">
+          <span id="metric-next-emoji" class="text-3xl">🍒</span>
+          <span id="metric-next-name" class="font-sans font-medium text-xs text-body">Cherry</span>
         </div>
       </div>
 
-
-
+      <!-- Panel 5: Timer (Visible only in Time Attack mode) -->
+      <div id="metric-timer-container" class="border border-hairline bg-canvas p-4 rounded-lg shadow-sm flex flex-col justify-between h-[96px] hidden transition-all">
+        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Time Remaining</span>
+        <span id="metric-timer" class="text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">2:00</span>
+      </div>
     </div>
   </div>
 </div>
@@ -140,7 +153,7 @@ import { FRUITS } from './game';
   import { GameEngine, FRUITS, type LogType, type GameStats } from './game';
 
   let game: GameEngine | null = null;
-  let activeMode: 'classic' | 'zen' | 'time' = 'classic';
+  let activeMode: 'classic' | 'zen' | 'time' = (localStorage.getItem('fg_active_mode') as any) || 'classic';
 
   // DOM elements
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -157,6 +170,8 @@ import { FRUITS } from './game';
   const metricNextEmoji = document.getElementById('metric-next-emoji') as HTMLSpanElement;
   const metricNextName = document.getElementById('metric-next-name') as HTMLSpanElement;
   const finalScoreText = document.getElementById('final-score') as HTMLSpanElement;
+  const metricTimerContainer = document.getElementById('metric-timer-container') as HTMLDivElement;
+  const metricTimer = document.getElementById('metric-timer') as HTMLSpanElement;
 
   // Mode Buttons
   const modeButtons = document.querySelectorAll('.game-mode-btn');
@@ -165,6 +180,27 @@ import { FRUITS } from './game';
   function addLog(message: string, type: LogType) {
     // Terminal removed
   }
+
+  // Load Highscore helper for visual preview
+  function updateHighScoreUI(mode: 'classic' | 'zen' | 'time') {
+    const savedHighScore = localStorage.getItem(`fg_highscore_${mode}`) || '0';
+    metricHighScore.textContent = savedHighScore;
+  }
+
+  // Initialize high score UI on first load
+  updateHighScoreUI(activeMode);
+
+  // Sync mode button styling on load
+  modeButtons.forEach((btn) => {
+    const mode = btn.getAttribute('data-mode') as 'classic' | 'zen' | 'time';
+    if (mode === activeMode) {
+      btn.classList.add('active', 'text-ink');
+      btn.classList.remove('text-body');
+    } else {
+      btn.classList.remove('active', 'text-ink');
+      btn.classList.add('text-body');
+    }
+  });
 
   // Update metrics UI
   function updateStatsUI(stats: GameStats) {
@@ -189,16 +225,27 @@ import { FRUITS } from './game';
 
   // Handle Game Timer for Time Attack
   function updateTimerUI(seconds: number) {
-    if (activeMode !== 'time') return;
+    if (activeMode !== 'time') {
+      metricTimerContainer.classList.add('hidden');
+      return;
+    }
+    metricTimerContainer.classList.remove('hidden');
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    const timeStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    metricTimer.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   }
 
   // Initialize Game Instance
   function initGame() {
     if (game) {
       game.destroy();
+    }
+
+    if (activeMode === 'time') {
+      metricTimerContainer.classList.remove('hidden');
+      metricTimer.textContent = '2:00';
+    } else {
+      metricTimerContainer.classList.add('hidden');
     }
 
     game = new GameEngine(canvas, {
@@ -241,6 +288,17 @@ import { FRUITS } from './game';
       const target = e.currentTarget as HTMLButtonElement;
       const mode = target.getAttribute('data-mode') as 'classic' | 'zen' | 'time';
 
+      if (mode === activeMode) return;
+
+      // Check if a game is actively in progress
+      const isGameActive = game && !game.gameOver && !startOverlay.classList.contains('hidden');
+      if (isGameActive) {
+        const confirmChange = window.confirm(`Switch to ${target.textContent?.trim()}? Your current game progress will be lost.`);
+        if (!confirmChange) {
+          return; // Cancelled
+        }
+      }
+
       modeButtons.forEach((b) => b.classList.remove('active', 'text-ink'));
       modeButtons.forEach((b) => b.classList.add('text-body'));
       
@@ -248,10 +306,12 @@ import { FRUITS } from './game';
       target.classList.remove('text-body');
 
       activeMode = mode;
+      localStorage.setItem('fg_active_mode', mode);
+      updateHighScoreUI(mode);
 
-      // Automatically restart with new environment if game is active
+      // Automatically restart with new environment if game has started or is over
       if (!startOverlay.classList.contains('hidden')) {
-        // Just prepare
+        // Just prepare start screen with new mode config
       } else {
         gameOverOverlay.classList.add('hidden');
         initGame();
