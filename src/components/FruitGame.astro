@@ -2,154 +2,211 @@
 import { FRUITS } from './game';
 ---
 
-<div class="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8 flex flex-col gap-8">
+<div class="w-full max-w-[800px] mx-auto px-4 py-6 flex flex-col items-center gap-6">
   
-  <!-- Top Bar: Game Mode Selector -->
-  <div class="flex flex-col sm:flex-row items-center justify-between border border-hairline bg-canvas p-4 rounded-lg gap-4 shadow-sm">
-    <div class="flex items-center gap-3">
-      <span class="w-2.5 h-2.5 rounded-full bg-success"></span>
-      <h3 class="font-sans font-semibold text-sm tracking-[-0.28px] text-ink">Game Mode</h3>
-    </div>
-    
-    <!-- Mode Tab Row (Ghost Pills) -->
-    <div class="flex items-center bg-canvas-soft-2 p-1 rounded-full border border-hairline">
-      <button 
-        data-mode="classic" 
-        class="game-mode-btn active px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer"
-      >
-        Classic (Normal)
-      </button>
-      <button 
-        data-mode="zen" 
-        class="game-mode-btn px-4 py-1.5 rounded-full text-xs font-medium text-body hover:text-ink transition-all duration-150 cursor-pointer"
-      >
-        Zen (Chill)
-      </button>
-      <button 
-        data-mode="time" 
-        class="game-mode-btn px-4 py-1.5 rounded-full text-xs font-medium text-body hover:text-ink transition-all duration-150 cursor-pointer"
-      >
-        Time Attack (Fast)
-      </button>
-    </div>
+  <!-- Mode Selector: Cute Rounded Badges -->
+  <div class="flex items-center bg-orange-100 dark:bg-canvas-soft-2 p-1.5 rounded-full border-3 border-[#2c1e13] shadow-md">
+    <button 
+      data-mode="classic" 
+      class="game-mode-btn active px-4 py-1.5 rounded-full text-xs font-black transition-all duration-150 cursor-pointer text-[#2c1e13] flex items-center gap-1.5"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+        <path d="M4 22h16"></path>
+        <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
+        <path d="M12 2a5 5 0 0 0-5 5v3c0 2.2 1.8 4 4 4h2c2.2 0 4-1.8 4-4V7a5 5 0 0 0-5-5z"></path>
+      </svg>
+      Classic
+    </button>
+    <button 
+      data-mode="zen" 
+      class="game-mode-btn px-4 py-1.5 rounded-full text-xs font-black text-stone-500 dark:text-body hover:text-[#2c1e13] dark:hover:text-ink transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2c1 2 2.5 3.5 4.5 4.5A12 12 0 0 1 22 12c-2 1-3.5 2.5-4.5 4.5A12 12 0 0 1 12 22c-1-2-2.5-3.5-4.5-4.5A12 12 0 0 1 2 12c2-1 3.5-2.5 4.5-4.5A12 12 0 0 1 12 2Z"></path>
+      </svg>
+      Zen Mode
+    </button>
+    <button 
+      data-mode="time" 
+      class="game-mode-btn px-4 py-1.5 rounded-full text-xs font-black text-stone-500 dark:text-body hover:text-[#2c1e13] dark:hover:text-ink transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+      </svg>
+      Time Sprint
+    </button>
   </div>
 
-  <!-- Three-Column Layout: Evolution Path + Centered Playground + Vertical Stats -->
-  <div class="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 w-full">
+  <!-- Playful Game Station Panel -->
+  <div class="flex flex-col items-center w-full max-w-[466px]">
     
-    <!-- Column A (lg:w-[220px]): Evolution Path Legend -->
-    <div class="hidden lg:flex flex-col gap-3 w-[220px] border border-hairline bg-canvas p-4 rounded-xl shadow-sm">
-      <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold mb-2">Evolution Path</span>
-      <div class="flex flex-col gap-2">
+    <!-- Top Bar: Settings, Score Cloud, Next Preview -->
+    <div class="flex items-center justify-between w-full px-2 mb-4 gap-3">
+      <!-- Settings button (Yellow Cog) -->
+      <button 
+        id="settings-btn"
+        class="w-12 h-12 rounded-2xl border-3 border-[#2c1e13] bg-[#fbbf24] hover:bg-[#f59e0b] shadow-md flex items-center justify-center cursor-pointer active:scale-95 transition-all duration-100"
+        title="Settings"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[#2c1e13] fill-none stroke-current" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+
+      <!-- Fluffy Score Cloud -->
+      <div class="relative bg-white dark:bg-canvas border-3 border-[#2c1e13] px-6 py-1 flex flex-col items-center justify-center shadow-lg rounded-3xl min-w-[140px] text-center z-10">
+        <span class="text-[10px] font-black text-amber-600 dark:text-amber-400 flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M12 2a5 5 0 0 0-5 5v3c0 2.2 1.8 4 4 4h2c2.2 0 4-1.8 4-4V7a5 5 0 0 0-5-5z"></path>
+          </svg> HIGH: <span id="metric-highscore">0</span>
+        </span>
+        <span id="metric-score" class="text-3xl font-black text-[#2c1e13] dark:text-ink leading-tight">0</span>
+        <!-- Combo Pill -->
+        <span id="metric-combo" class="absolute -bottom-2.5 bg-rose-500 text-white border-2 border-[#2c1e13] text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm select-none">
+          x0
+        </span>
+      </div>
+
+      <!-- Next Preview Panel -->
+      <div class="bg-white dark:bg-canvas border-3 border-[#2c1e13] rounded-2xl px-4 py-1.5 flex flex-col items-center justify-center shadow-lg min-w-[90px] min-h-[48px]">
+        <span class="text-[9px] font-black text-stone-500 dark:text-body uppercase leading-none">Next</span>
+        <div class="flex items-center gap-1 mt-0.5">
+          <span id="metric-next-emoji" class="text-2xl select-none leading-none">🍒</span>
+          <span id="metric-next-name" class="hidden text-[10px] font-bold text-stone-600">Cherry</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer Attack Display (Centred in this row if active) -->
+    <div id="metric-timer-container" class="flex items-center justify-center bg-rose-100 border-2 border-rose-400 px-3 py-1.5 rounded-full text-rose-700 font-black text-xs mb-3 hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1 text-rose-700 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      <span id="metric-timer">2:00</span>
+    </div>
+
+    <!-- Playground Container -->
+    <div class="relative border-4 border-[#2c1e13] bg-[#fefefe] rounded-3xl p-1.5 shadow-2xl flex items-center justify-center overflow-hidden w-full">
+      <!-- Game Canvas -->
+      <canvas 
+        id="game-canvas" 
+        width="440" 
+        height="640" 
+        class="block rounded-2xl cursor-crosshair max-w-full"
+      ></canvas>
+
+      <!-- Start Overlay -->
+      <div id="start-overlay" class="absolute inset-0 bg-[#dbeafe]/95 flex flex-col items-center justify-center p-6 text-center select-none z-10 transition-opacity duration-300">
+        <div class="text-[#2c1e13] mb-4 animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-[#fbbf24] stroke-[#2c1e13] fill-[#fbbf24]" viewBox="0 0 24 24" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </div>
+        <h2 class="font-black text-3xl tracking-tight text-[#3b2314] mb-2">Fruit Match Joy!</h2>
+        <p class="text-stone-600 text-sm max-w-xs mb-6 font-medium">Drop cute fruits and combine matching ones to grow the giant Watermelon!</p>
+        <button id="start-btn" class="h-12 px-8 bg-[#fbbf24] hover:bg-[#f59e0b] text-[#3b2314] border-3 border-[#2c1e13] font-black text-base rounded-full shadow-md active:scale-95 transition-all cursor-pointer">
+          Let's Play!
+        </button>
+      </div>
+
+      <!-- Game Over Overlay -->
+      <div id="game-over-overlay" class="absolute inset-0 bg-stone-900/90 flex flex-col items-center justify-center p-6 text-center select-none z-10 hidden transition-opacity duration-300">
+        <div class="text-rose-400 mb-4 animate-pulse">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <h2 class="font-black text-3xl text-rose-400 mb-2">Oh No! Game Over!</h2>
+        <p class="text-stone-300 text-sm max-w-xs mb-4" id="crash-reason">Your fruits crossed the warning line!</p>
+        
+        <div class="bg-stone-800 border-3 border-stone-700 p-4 rounded-2xl w-full max-w-xs mb-6 flex flex-col gap-0.5">
+          <span class="text-xs text-stone-400 font-bold uppercase">Final Score</span>
+          <span class="text-4xl font-black text-yellow-300" id="final-score">0</span>
+          <span class="text-xs text-stone-400 font-bold flex items-center justify-center gap-1 mt-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-yellow-400 fill-yellow-400 stroke-none" viewBox="0 0 24 24">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg> Awesome job!
+          </span>
+        </div>
+
+        <button id="restart-btn" class="h-12 px-8 bg-[#fbbf24] hover:bg-[#f59e0b] text-[#3b2314] border-3 border-[#2c1e13] font-black text-base rounded-full shadow-md active:scale-95 transition-all cursor-pointer">
+          Play Again!
+        </button>
+      </div>
+    </div>
+
+    <!-- Cooldown / Help Prompt -->
+    <div class="w-full mt-2 px-1 flex items-center justify-between text-[11px] text-[#6b432a] dark:text-body font-bold">
+      <span>👆 Tap or Click container to Drop!</span>
+      <span id="cooldown-indicator" class="text-green-600 hidden">● Ready!</span>
+    </div>
+
+    <!-- Wooden Log Evolution Path Bar at bottom -->
+    <div class="w-full bg-[#b45309] border-3 border-[#2c1e13] rounded-2xl py-2 px-3 shadow-md mt-4 flex flex-col items-center">
+      <span class="text-[9px] text-amber-100 font-black uppercase tracking-wider mb-1 flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg> Fruit Evolution Path
+      </span>
+      <div class="w-full flex items-center justify-between px-1 gap-1">
         {FRUITS.map((fruit, idx) => (
-          <div class="flex items-center justify-between border-b border-hairline/50 pb-1.5 last:border-0 last:pb-0">
-            <div class="flex items-center gap-2">
-              <span class="text-xl select-none">{fruit.emoji}</span>
-              <span class="text-xs font-sans font-medium text-ink">{fruit.name}</span>
+          <div class="flex flex-col items-center gap-0.5 relative group">
+            <div class="w-8 h-8 rounded-full bg-[#fffbeb] border-2 border-[#2c1e13] flex items-center justify-center text-lg select-none shadow-sm transition-transform duration-100 hover:scale-110">
+              {fruit.emoji}
             </div>
-            <span class="text-[9px] font-mono text-mute bg-canvas-soft-2 px-1.5 py-0.5 rounded border border-hairline">+{fruit.score}</span>
+            <!-- Display coins/badges under Melon & Watermelon -->
+            {idx === 8 && <span class="text-[8px] font-bold text-amber-200 leading-none">10🪙</span>}
+            {idx === 9 && <span class="text-[8px] font-bold text-amber-200 leading-none">30🪙</span>}
           </div>
         ))}
       </div>
     </div>
 
-    <!-- Column B: Game Board Container (Playground in the middle) -->
-    <div class="flex flex-col items-center justify-center w-full max-w-[466px]">
-      <div class="relative border border-hairline bg-canvas rounded-xl p-3 shadow-md flex items-center justify-center overflow-hidden w-full">
-        
-        <!-- Game Canvas -->
-        <canvas 
-          id="game-canvas" 
-          width="440" 
-          height="640" 
-          class="block rounded-lg cursor-crosshair max-w-full"
-        ></canvas>
+  </div>
+</div>
 
-        <!-- Start Overlay -->
-        <div id="start-overlay" class="absolute inset-0 bg-canvas/90 flex flex-col items-center justify-center p-6 text-center select-none z-10 transition-opacity duration-300">
-          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-canvas border border-hairline shadow-sm text-lg mb-4 text-develop-start">
-            <!-- Premium Game Controller SVG -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="6" y1="12" x2="10" y2="12"></line>
-              <line x1="8" y1="10" x2="8" y2="14"></line>
-              <line x1="15" y1="13" x2="15.01" y2="13"></line>
-              <line x1="18" y1="11" x2="18.01" y2="11"></line>
-              <rect x="2" y="6" width="20" height="12" rx="3"></rect>
-            </svg>
-          </div>
-          <h2 class="font-sans font-semibold text-2xl tracking-[-0.96px] text-ink mb-2">Ready to Play?</h2>
-          <p class="text-body text-sm max-w-xs mb-6">Drop fruits into the box and merge them to make the biggest fruit!</p>
-          <button id="start-btn" class="h-10 px-6 bg-ink text-canvas hover:bg-body font-medium text-sm rounded-full transition-colors duration-150 cursor-pointer">
-            Start Game
-          </button>
-        </div>
-
-        <!-- Game Over Overlay -->
-        <div id="game-over-overlay" class="absolute inset-0 bg-canvas/95 flex flex-col items-center justify-center p-6 text-center select-none z-10 hidden transition-opacity duration-300">
-          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-error/10 text-error mb-4 animate-bounce">
-            <!-- Premium Siren Alert SVG -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-          </div>
-          <h2 class="font-sans font-semibold text-2xl tracking-[-0.96px] text-error mb-2">Game Over!</h2>
-          <p class="text-body text-sm max-w-xs mb-1">Your fruits piled up too high.</p>
-          <p class="font-mono text-xs text-mute mb-6" id="crash-reason">Reason: Out of memory.</p>
-          
-          <div class="bg-canvas-soft border border-hairline p-4 rounded-md w-full max-w-xs mb-6 flex flex-col gap-1">
-            <span class="text-xs text-mute font-mono">FINAL METRICS</span>
-            <span class="text-3xl font-semibold tracking-[-1.28px] text-ink" id="final-score">0</span>
-            <span class="text-xs text-mute font-mono">points scored</span>
-          </div>
-
-          <button id="restart-btn" class="h-10 px-6 bg-ink text-canvas hover:bg-body font-medium text-sm rounded-full transition-colors duration-150 cursor-pointer">
-            Play Again
-          </button>
-        </div>
-      </div>
-
-      <!-- Cooldown Loader/Prompt under Canvas -->
-      <div class="w-full mt-2 px-1 flex items-center justify-between text-xs text-mute font-mono">
-        <span>DROP: MOUSE OVER CONTAINER + CLICK</span>
-        <span id="cooldown-indicator" class="text-success hidden">● READY TO DROP</span>
-      </div>
-    </div>
-
-    <!-- Column C: Control Panel Dashboard (Grid on mobile/tablet, vertical stack on desktop) -->
-    <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-1 lg:flex lg:flex-col gap-3 w-full max-w-[466px] lg:w-[220px]">
-      <!-- Panel 1: Score -->
-      <div class="border border-hairline bg-canvas p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between h-[80px] sm:h-[96px]">
-        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Score</span>
-        <span id="metric-score" class="text-2xl sm:text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">0</span>
-      </div>
-      
-      <!-- Panel 2: High Score -->
-      <div class="border border-hairline bg-canvas p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between h-[80px] sm:h-[96px]">
-        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">High Score</span>
-        <span id="metric-highscore" class="text-2xl sm:text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">0</span>
-      </div>
-
-      <!-- Panel 3: Combo -->
-      <div class="border border-hairline bg-canvas p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between h-[80px] sm:h-[96px]">
-        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Combo</span>
-        <span id="metric-combo" class="text-2xl sm:text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">x0</span>
-      </div>
-
-      <!-- Panel 4: Next Asset -->
-      <div class="border border-hairline bg-canvas p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between h-[80px] sm:h-[96px]">
-        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Next Fruit</span>
-        <div class="flex items-center justify-between mt-1 sm:mt-0">
-          <span id="metric-next-emoji" class="text-2xl sm:text-3xl select-none">🍒</span>
-          <span id="metric-next-name" class="font-sans font-medium text-[10px] sm:text-xs text-body">Cherry</span>
-        </div>
-      </div>
-
-      <!-- Panel 5: Timer (Visible only in Time Attack mode) -->
-      <div id="metric-timer-container" class="border border-hairline bg-canvas p-3 sm:p-4 rounded-lg shadow-sm flex flex-col justify-between h-[80px] sm:h-[96px] hidden transition-all col-span-2 sm:col-span-1 lg:col-span-1">
-        <span class="font-mono text-[10px] uppercase text-mute tracking-wider font-semibold">Time Remaining</span>
-        <span id="metric-timer" class="text-2xl sm:text-3xl font-semibold tracking-[-1.28px] text-ink font-mono">2:00</span>
+<!-- Settings Drawer / Modal -->
+<div id="settings-modal" class="fixed inset-0 bg-stone-950/70 z-50 flex items-center justify-center hidden select-none">
+  <div class="bg-white dark:bg-canvas border-4 border-[#2c1e13] rounded-3xl p-6 w-80 max-w-full shadow-2xl relative">
+    <button id="close-settings" class="absolute top-2 right-2 w-8 h-8 rounded-full border-2 border-[#2c1e13] bg-rose-100 text-[#2c1e13] hover:bg-rose-200 font-black cursor-pointer flex items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 stroke-current" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <h3 class="text-xl font-black text-[#2c1e13] dark:text-ink mb-4 text-center flex items-center justify-center gap-1.5">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+      Settings
+    </h3>
+    
+    <div class="flex flex-col gap-3">
+      <!-- Quick Reset -->
+      <div class="flex items-center justify-between border-b border-stone-100 dark:border-hairline pb-2">
+        <span class="text-sm font-black text-[#6b432a] dark:text-body flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          </svg>
+          Reset High Scores
+        </span>
+        <button id="reset-scores" class="px-2.5 py-1 text-xs font-black bg-rose-100 text-rose-700 border-2 border-[#2c1e13] rounded-lg cursor-pointer hover:bg-rose-200">Reset</button>
       </div>
     </div>
   </div>
@@ -158,10 +215,10 @@ import { FRUITS } from './game';
 <style>
   /* Custom button state classes for active mode */
   .game-mode-btn.active {
-    background-color: var(--canvas);
-    color: var(--ink);
-    border-color: var(--hairline-strong);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    background-color: #fbbf24;
+    color: #2c1e13;
+    border: 2px solid #2c1e13;
+    box-shadow: 0 2px 0px #2c1e13;
   }
 </style>
 
@@ -179,6 +236,12 @@ import { FRUITS } from './game';
   const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
   const restartBtn = document.getElementById('restart-btn') as HTMLButtonElement;
   
+  // Settings Modal Elements
+  const settingsBtn = document.getElementById('settings-btn') as HTMLButtonElement;
+  const settingsModal = document.getElementById('settings-modal') as HTMLDivElement;
+  const closeSettings = document.getElementById('close-settings') as HTMLButtonElement;
+  const resetScoresBtn = document.getElementById('reset-scores') as HTMLButtonElement;
+
   // Dashboard Metrics
   const metricScore = document.getElementById('metric-score') as HTMLSpanElement;
   const metricHighScore = document.getElementById('metric-highscore') as HTMLSpanElement;
@@ -194,7 +257,8 @@ import { FRUITS } from './game';
 
   // Set up terminal logging
   function addLog(message: string, type: LogType) {
-    // Terminal removed
+    // Console log to see activity
+    console.log(`[FruitGame] ${message}`);
   }
 
   // Load Highscore helper for visual preview
@@ -210,11 +274,11 @@ import { FRUITS } from './game';
   modeButtons.forEach((btn) => {
     const mode = btn.getAttribute('data-mode') as 'classic' | 'zen' | 'time';
     if (mode === activeMode) {
-      btn.classList.add('active', 'text-ink');
-      btn.classList.remove('text-body');
+      btn.classList.add('active');
+      btn.classList.remove('text-stone-500', 'dark:text-body');
     } else {
-      btn.classList.remove('active', 'text-ink');
-      btn.classList.add('text-body');
+      btn.classList.remove('active');
+      btn.classList.add('text-stone-500', 'dark:text-body');
     }
   });
 
@@ -224,10 +288,10 @@ import { FRUITS } from './game';
     metricHighScore.textContent = stats.highScore.toString();
     metricCombo.textContent = stats.combo > 0 ? `x${stats.combo}` : 'x0';
 
-    // Trigger visual highlights
+    // Trigger visual highlights for combo
     if (stats.combo > 1) {
-      metricCombo.classList.add('text-success', 'scale-105');
-      setTimeout(() => metricCombo.classList.remove('text-success', 'scale-105'), 200);
+      metricCombo.classList.add('scale-110', 'bg-rose-600');
+      setTimeout(() => metricCombo.classList.remove('scale-110', 'bg-rose-600'), 200);
     }
 
     // Update Next Asset preview
@@ -268,14 +332,16 @@ import { FRUITS } from './game';
       onLog: (msg, type) => addLog(msg, type),
       onStats: (stats) => updateStatsUI(stats),
       onTimer: (seconds) => updateTimerUI(seconds),
-      onGameOver: (score) => {
+      onGameOver: (score, reason) => {
         gameOverOverlay.classList.remove('hidden');
         finalScoreText.textContent = score.toString();
         
-        if (activeMode === 'time') {
+        if (reason) {
+          crashReasonText.textContent = `Reason: ${reason}`;
+        } else if (activeMode === 'time') {
           crashReasonText.textContent = 'Reason: Time ran out! (120s limit).';
         } else {
-          crashReasonText.textContent = 'Reason: Fruits crossed the red line for too long!';
+          crashReasonText.textContent = 'Reason: Fruits crossed the warning line for too long!';
         }
       }
     });
@@ -286,6 +352,37 @@ import { FRUITS } from './game';
     // Initial Stats Load
     updateStatsUI(game.stats);
   }
+
+  // Settings Drawer Toggle
+  settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    settingsModal.classList.remove('hidden');
+  });
+
+  closeSettings.addEventListener('click', () => {
+    settingsModal.classList.add('hidden');
+  });
+
+  settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.classList.add('hidden');
+    }
+  });
+
+  // Reset High Scores
+  resetScoresBtn.addEventListener('click', () => {
+    if (window.confirm("Are you sure you want to reset all high scores?")) {
+      localStorage.removeItem('fg_highscore_classic');
+      localStorage.removeItem('fg_highscore_zen');
+      localStorage.removeItem('fg_highscore_time');
+      updateHighScoreUI(activeMode);
+      if (game) {
+        game.stats.highScore = 0;
+        updateStatsUI(game.stats);
+      }
+      alert("High scores reset successfully!");
+    }
+  });
 
   // Bind Start Buttons
   startBtn.addEventListener('click', () => {
@@ -307,7 +404,7 @@ import { FRUITS } from './game';
       if (mode === activeMode) return;
 
       // Check if a game is actively in progress
-      const isGameActive = game && !game.gameOver && !startOverlay.classList.contains('hidden');
+      const isGameActive = game && !game.gameOver && startOverlay.classList.contains('hidden');
       if (isGameActive) {
         const confirmChange = window.confirm(`Switch to ${target.textContent?.trim()}? Your current game progress will be lost.`);
         if (!confirmChange) {
@@ -315,11 +412,13 @@ import { FRUITS } from './game';
         }
       }
 
-      modeButtons.forEach((b) => b.classList.remove('active', 'text-ink'));
-      modeButtons.forEach((b) => b.classList.add('text-body'));
+      modeButtons.forEach((b) => {
+        b.classList.remove('active');
+        b.classList.add('text-stone-500', 'dark:text-body');
+      });
       
-      target.classList.add('active', 'text-ink');
-      target.classList.remove('text-body');
+      target.classList.add('active');
+      target.classList.remove('text-stone-500', 'dark:text-body');
 
       activeMode = mode;
       localStorage.setItem('fg_active_mode', mode);

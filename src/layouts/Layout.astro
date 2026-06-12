@@ -7,8 +7,8 @@ interface Props {
 }
 
 const { 
-	title = "Fruit Gamer | The Ultimate Developer Merge Game", 
-	description = "Merge code commits and release pipelines to ship the giant Watermelon! A physics-based, addictive merge game styled like a premium developer dashboard."
+	title = "Fruit Joy | The Cutest Fruit Merge Game Online", 
+	description = "Merge cute cartoon fruits to grow a giant Watermelon! A physics-based, addictive, and children-friendly fruit matching puzzle game."
 } = Astro.props;
 
 const canonicalUrl = "https://fruitgamer.com" + Astro.url.pathname;
@@ -55,13 +55,13 @@ const canonicalUrl = "https://fruitgamer.com" + Astro.url.pathname;
 		<!-- Google Fonts -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
 
 		<!-- Theme Init Script (Inline to prevent FOUC) -->
 		<script is:inline>
 			if (
-				localStorage.theme === 'dark' ||
-				(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+				localStorage.getItem('theme') === 'dark' ||
+				(!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
 			) {
 				document.documentElement.classList.add('dark');
 			} else {

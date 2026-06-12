@@ -5,67 +5,67 @@ import Footer from '../components/Footer.astro';
 ---
 
 <Layout 
-  title="About Us | Fruit Gamer - The Ultimate Developer Merge Game" 
-  description="Discover the history, tech stack, and development pipeline mechanics behind Fruit Gamer. Built for developers, styled by Vercel."
+  title="About Us | Fruit Joy - Cute Fruit Match Game" 
+  description="Learn more about Fruit Joy, the cutest fruit merge puzzle game online. Made for kids and players of all ages!"
 >
   <Navbar />
 
-  <main class="w-full bg-canvas py-16 md:py-24 transition-colors duration-200">
+  <main class="w-full bg-canvas py-16 transition-colors duration-200">
     <div class="max-w-[800px] mx-auto px-4 md:px-6">
       
       <!-- Path breadcrumb/header -->
-      <div class="mb-10 text-left border-b border-hairline pb-8">
-        <span class="font-mono text-xs uppercase text-mute tracking-wider font-semibold">GET /about-us</span>
-        <h1 class="font-sans font-semibold text-3xl md:text-4xl tracking-tight text-ink mt-2 mb-4">
-          About Fruit Gamer
+      <div class="mb-10 text-left border-b-3 border-[#2c1e13]/10 pb-8 font-black text-[#2c1e13]">
+        <span class="bg-amber-100 text-amber-800 border-2 border-[#2c1e13] text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">About Us</span>
+        <h1 class="text-3xl md:text-4xl mt-3 mb-2">
+          About Fruit Joy 🍒
         </h1>
-        <p class="text-body text-sm max-w-xl leading-relaxed">
-          The story of a developer-centric physics merge experiment, built for clean web performance and fun.
+        <p class="text-stone-500 text-sm max-w-xl leading-relaxed">
+          The story of a cute, physics-based matching game built for everyone to enjoy!
         </p>
       </div>
 
-      <!-- Article content styled with Vercel guidelines -->
-      <article class="prose prose-sm sm:prose max-w-none text-body font-sans leading-relaxed flex flex-col gap-6 select-text">
+      <!-- Article content styled with playful guidelines -->
+      <article class="text-stone-600 dark:text-body leading-relaxed flex flex-col gap-6 select-text font-bold">
         <section>
-          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">Our Mission</h2>
+          <h2 class="text-xl font-black text-[#2c1e13] dark:text-ink mb-3">Our Mission 🌟</h2>
           <p>
-            At <strong>Fruit Gamer</strong>, we believe that web gaming should be fast, elegant, and completely free of disruptive ads. We took the highly engaging, physics-based fruit merge formula (popularized by Suika Game) and redesigned it from the ground up for developers and tech enthusiasts. By surrounding the core physics container with a sleek dashboard HUD, command logs, and clean grid panels, we created a game that feels right at home on a second monitor.
+            At <strong>Fruit Joy</strong>, we believe that web games should be super fast, adorable, and completely free of annoying ads. We took the highly engaging, physics-based fruit matching formula (popularized by Suika Game) and redesigned it with a colorful, playful cartoon theme. Every single fruit has a cute happy face and glowing cheeks to make your gameplay experience as cheerful as possible!
           </p>
         </section>
 
-        <section class="border-t border-hairline pt-6">
-          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">The Technology Stack</h2>
+        <section class="border-t-2 border-[#2c1e13]/10 pt-6">
+          <h2 class="text-xl font-black text-[#2c1e13] dark:text-ink mb-3">The Technology Stack 🛠️</h2>
           <p>
-            Fruit Gamer is built utilizing cutting-edge web tools to ensure sub-millisecond input response times and steady 60fps rendering:
+            Fruit Joy uses advanced web technologies behind the scenes to keep the game running at a silky-smooth 60 frames per second:
           </p>
-          <ul class="list-disc pl-5 mt-2 space-y-2 text-sm font-mono">
+          <ul class="list-disc pl-5 mt-2 space-y-2 text-xs font-black">
             <li>
-              <strong class="text-ink">Astro (v6)</strong>: Provides the ultra-fast, zero-JS-by-default MPA framework allowing excellent SEO indexability.
+              <strong>Astro (v6)</strong>: Powers our fast, search-friendly website.
             </li>
             <li>
-              <strong class="text-ink">Matter.js</strong>: Powers the 2D rigid body physics simulations, rendering friction, gravity, restitution (bounce), and collisions.
+              <strong>Matter.js</strong>: Handles the realistic bouncing and rolling of our cute round fruits.
             </li>
             <li>
-              <strong class="text-ink">Tailwind CSS (v4)</strong>: Handles our fluid layout mechanics and the custom light/dark color palettes.
+              <strong>Tailwind CSS (v4)</strong>: Styles our pages with bright, playful, and responsive layouts.
             </li>
             <li>
-              <strong class="text-ink">Web Audio API</strong>: Synthesizes procedural retro tones on-the-fly, eliminating heavy audio asset loading.
+              <strong>Web Audio API</strong>: Generates cute pop and merge sounds on-the-fly!
             </li>
           </ul>
         </section>
 
-        <section class="border-t border-hairline pt-6">
-          <h2 class="text-xl font-semibold text-ink tracking-tight mb-3">Merge Pipeline Mechanics</h2>
+        <section class="border-t-2 border-[#2c1e13]/10 pt-6">
+          <h2 class="text-xl font-black text-[#2c1e13] dark:text-ink mb-3">Matching Fun & Joy! 🎉</h2>
           <p>
-            In Fruit Gamer, every fruit represents a step in a deployment pipeline. Merging small fruits (like code commits) climbs the hierarchy to release large assets (like the production-ready Watermelon). 
-            Managing your container space is critical. If your stacked assets overflow the boundary line, the buffer overflows, triggering a system crash (Game Over).
+            In Fruit Joy, every fruit can merge into a bigger one when it touches a matching fruit. 
+            Keep matching to clear up space, and aim carefully so they don't pile up into the danger zone at the top!
           </p>
         </section>
 
-        <section class="border-t border-hairline pt-6 bg-canvas-soft border p-6 rounded-lg">
-          <h2 class="text-lg font-semibold text-ink tracking-tight mb-2">Open Source Philosophy</h2>
-          <p class="text-xs sm:text-sm">
-            We are dedicated to maintaining a clean web presence. That means no trackers, no cookies, and no annoying video ads. Just premium gameplay, responsive mechanics, and fun challenges. Thank you for playing, merging, and deploying with us!
+        <section class="border-3 border-[#2c1e13] bg-amber-50 dark:bg-canvas-soft-2 p-6 rounded-3xl">
+          <h2 class="text-lg font-black text-[#2c1e13] dark:text-ink mb-2">No Ads, Safe for Everyone 🔒</h2>
+          <p class="text-xs sm:text-sm font-medium">
+            We are dedicated to maintaining a clean and safe website. That means no tracking, no cookies, and no video ads. Just pure, clean matching fun for the whole family! Thank you for playing and sharing Fruit Joy!
           </p>
         </section>
       </article>

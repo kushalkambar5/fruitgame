@@ -56,6 +56,7 @@ export interface GameStats {
   shakeCharges: number;
   gcCharges: number;
   hotfixCharges: number;
+  swapCharges: number;
 }
 
 // Web Audio API Sound Synthesizer
@@ -189,9 +190,10 @@ export class GameEngine {
     highScore: 0,
     combo: 0,
     level: 1,
-    shakeCharges: 1,
-    gcCharges: 0,
-    hotfixCharges: 0,
+    shakeCharges: 2,
+    gcCharges: 2,
+    hotfixCharges: 2,
+    swapCharges: 2,
   };
 
   private gameMode: 'classic' | 'zen' | 'time' = 'classic';
@@ -204,7 +206,8 @@ export class GameEngine {
   private redLineWarning: boolean = false;
   private redLineTimer: number = 0; // Duration stationary fruit is above red line
   private dropCooldown: boolean = false;
-  private nextFruitIndex: number = 0;
+  public currentFruitIndex: number = 0;
+  public nextFruitIndex: number = 0;
   private previewX: number = 220;
 
   // CLI / hotfix status
@@ -220,7 +223,7 @@ export class GameEngine {
   // Listeners
   private onLogCallback: (msg: string, type: LogType) => void;
   private onStatsCallback: (stats: GameStats) => void;
-  private onGameOverCallback: (score: number) => void;
+  private onGameOverCallback: (score: number, reason: string) => void;
   private onTimerCallback: (seconds: number) => void;
 
   constructor(
@@ -228,7 +231,7 @@ export class GameEngine {
     callbacks: {
       onLog: (msg: string, type: LogType) => void;
       onStats: (stats: GameStats) => void;
-      onGameOver: (score: number) => void;
+      onGameOver: (score: number, reason: string) => void;
       onTimer: (seconds: number) => void;
     }
   ) {
@@ -247,15 +250,17 @@ export class GameEngine {
 
     this.setupWorld();
     this.setupEvents();
+    this.currentFruitIndex = Math.floor(Math.random() * 5);
     this.rollNextFruit();
   }
 
   private setupWorld() {
     const wallOptions = { isStatic: true, friction: 0.1, restitution: 0.2 };
-    // Bucket boundaries: bottom wall at y = 614, side walls at x = 36 and x = 404
-    const bottomWall = Matter.Bodies.rectangle(220, 614, 328, 8, wallOptions);
-    const leftWall = Matter.Bodies.rectangle(36, 365, 8, 490, wallOptions);
-    const rightWall = Matter.Bodies.rectangle(404, 365, 8, 490, wallOptions);
+    // Bucket boundaries: bottom wall top is at y = 610, left wall right edge is at x = 40, right wall left edge is at x = 400.
+    // We make them 100px thick and extend/overlap them to eliminate corner gaps and prevent tunneling.
+    const bottomWall = Matter.Bodies.rectangle(220, 660, 400, 100, wallOptions);
+    const leftWall = Matter.Bodies.rectangle(-10, 385, 100, 530, wallOptions);
+    const rightWall = Matter.Bodies.rectangle(450, 385, 100, 530, wallOptions);
 
     // Label walls as static
     (bottomWall as any).label = 'wall';
@@ -348,9 +353,14 @@ export class GameEngine {
     const savedHighScore = localStorage.getItem(`fg_highscore_${mode}`);
     this.stats.highScore = savedHighScore ? parseInt(savedHighScore, 10) : 0;
 
-    this.stats.shakeCharges = 1;
-    this.stats.gcCharges = mode === 'zen' ? 1 : 0;
-    this.stats.hotfixCharges = 0;
+    this.stats.shakeCharges = 2;
+    this.stats.gcCharges = 2;
+    this.stats.hotfixCharges = 2;
+    this.stats.swapCharges = 2;
+    
+    this.currentFruitIndex = Math.floor(Math.random() * 5);
+    this.rollNextFruit();
+    
     this.updateStats();
 
     // Cancel existing animation loop if any
@@ -420,16 +430,17 @@ export class GameEngine {
     if (this.dropCooldown) return;
 
     // Boundary limits (constrained inside the bucket walls)
-    const fruit = FRUITS[this.nextFruitIndex];
+    const fruit = FRUITS[this.currentFruitIndex];
     const leftLimit = 40 + fruit.radius;
     const rightLimit = 400 - fruit.radius;
     const dropX = Math.max(leftLimit, Math.min(clickX, rightLimit));
 
     this.sounds.playDrop();
-    this.spawnFruit(dropX, 50, this.nextFruitIndex);
-    this.log(`[DEPLOY] Pushed commit containing [${fruit.name} ${fruit.emoji}] at x = ${Math.round(dropX)}px`, 'info');
+    this.spawnFruit(dropX, 50, this.currentFruitIndex);
+    this.log(`Dropped a cute ${fruit.name} ${fruit.emoji}!`, 'info');
 
-    // Roll next and trigger cooldown
+    // Shift next to current, and roll new next
+    this.currentFruitIndex = this.nextFruitIndex;
     this.rollNextFruit();
     this.dropCooldown = true;
     
@@ -475,29 +486,47 @@ export class GameEngine {
         this.stats.hotfixCharges--;
         this.hotfixActive = false;
         this.sounds.playCmd();
-        this.log(`[RUN] npm run hotfix completed. Upgraded ${FRUITS[idx].emoji} to ${FRUITS[idx+1].emoji} directly.`, 'cmd');
+        this.log(`Magic Upgrade! Upgraded ${FRUITS[idx].emoji} to ${FRUITS[idx+1].emoji}!`, 'success');
         this.updateStats();
       } else {
-        this.log(`[ERROR] Cannot hotfix Watermelon. Maximum release achieved.`, 'error');
+        this.log(`Cannot upgrade Watermelon. It's already the biggest!`, 'error');
         this.hotfixActive = false;
       }
     } else {
-      this.log(`[WARNING] Hotfix target not found. Click directly on a fruit to upgrade.`, 'warning');
+      this.log(`Upgrade target not found. Click directly on a fruit to upgrade.`, 'warning');
       this.hotfixActive = false;
     }
+  }
+
+  // Swap current fruit with next fruit
+  public swapFruit() {
+    if (this.gameOver) return;
+    if (this.stats.swapCharges <= 0) {
+      this.log(`No swap charges remaining!`, 'warning');
+      return;
+    }
+    this.sounds.playCmd();
+    this.stats.swapCharges--;
+    
+    const temp = this.currentFruitIndex;
+    this.currentFruitIndex = this.nextFruitIndex;
+    this.nextFruitIndex = temp;
+
+    this.log(`Swapped current fruit with next fruit!`, 'success');
+    this.updateStats();
   }
 
   // CLI Powerups: npm run shake
   public runCmdShake() {
     if (this.gameOver) return;
     if (this.stats.shakeCharges <= 0) {
-      this.log(`[ERROR] Command failed: "npm run shake". Insufficient charges.`, 'error');
+      this.log(`No shake charges remaining!`, 'error');
       return;
     }
 
     this.sounds.playCmd();
     this.stats.shakeCharges--;
-    this.log(`[RUN] Running "npm run shake"... Restructuring container assets.`, 'cmd');
+    this.log(`Jiggle! Shook the box to mix up the fruits!`, 'success');
 
     const bodies = Matter.Composite.allBodies(this.engine.world);
     bodies.forEach((body) => {
@@ -515,12 +544,12 @@ export class GameEngine {
   public runCmdGC() {
     if (this.gameOver) return;
     if (this.stats.gcCharges <= 0) {
-      this.log(`[ERROR] Command failed: "npm run gc". Insufficient charges.`, 'error');
+      this.log(`No Cherry Bomb charges remaining!`, 'error');
       return;
     }
 
     this.sounds.playCmd();
-    this.log(`[RUN] Running "npm run gc"... Triggering memory garbage collection.`, 'cmd');
+    this.log(`Cherry Bomb! Boom! All tiny cherries popped!`, 'success');
 
     const bodies = Matter.Composite.allBodies(this.engine.world);
     let count = 0;
@@ -533,7 +562,6 @@ export class GameEngine {
     });
 
     this.stats.gcCharges--;
-    this.log(`[RUN] Garbage collection successfully purged ${count} Cherry instances.`, 'cmd');
     this.updateStats();
   }
 
@@ -541,11 +569,11 @@ export class GameEngine {
   public enableHotfix() {
     if (this.gameOver) return;
     if (this.stats.hotfixCharges <= 0) {
-      this.log(`[ERROR] Command failed: "npm run hotfix". Insufficient charges.`, 'error');
+      this.log(`No Upgrade charges remaining!`, 'error');
       return;
     }
     this.hotfixActive = true;
-    this.log(`[RUN] "npm run hotfix" active. CLICK directly on a deployed fruit inside the container to upgrade it.`, 'cmd');
+    this.log(`Magic Upgrade active! Click on a fruit inside the container to upgrade it!`, 'info');
   }
 
   // Create particles on merge
@@ -679,6 +707,12 @@ export class GameEngine {
           // It's above the line
           fruitAboveLine = true;
         }
+
+        // Check if a fruit has dropped/spilled out of the bucket
+        if (body.position.y > 630 || (body.position.y - radius > 610 && (body.position.x < 36 || body.position.x > 404))) {
+          this.triggerGameOver('A fruit dropped out of the bucket!');
+          return;
+        }
       }
     });
 
@@ -713,39 +747,230 @@ export class GameEngine {
     this.sounds.playGameOver();
     this.log(`[FATAL] CRASH: ${reason}`, 'error');
     this.log(`[SYSTEM] Pipeline failed. final Score: ${this.stats.score}`, 'error');
-    this.onGameOverCallback(this.stats.score);
+    this.onGameOverCallback(this.stats.score, reason);
   }
 
-  // Drawing routines
+  private drawFruit(
+    x: number,
+    y: number,
+    radius: number,
+    index: number,
+    angle: number,
+    alpha: number = 1.0
+  ) {
+    const fruit = FRUITS[index];
+    this.ctx.save();
+    this.ctx.translate(x, y);
+    this.ctx.rotate(angle);
+    this.ctx.globalAlpha = alpha;
+
+    // Draw main circle body
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    this.ctx.fillStyle = fruit.color;
+    this.ctx.fill();
+
+    // 3D glossy gradient overlay
+    const gloss = this.ctx.createRadialGradient(-radius * 0.35, -radius * 0.35, radius * 0.05, 0, 0, radius);
+    gloss.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+    gloss.addColorStop(0.3, 'rgba(255, 255, 255, 0.1)');
+    gloss.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    this.ctx.fillStyle = gloss;
+    this.ctx.fill();
+
+    // Thick cartoon outline
+    this.ctx.strokeStyle = '#2c1e13';
+    this.ctx.lineWidth = Math.max(2.5, radius * 0.08);
+    this.ctx.stroke();
+
+    // Glint spot
+    this.ctx.beginPath();
+    this.ctx.arc(-radius * 0.4, -radius * 0.4, radius * 0.15, 0, Math.PI * 2);
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    this.ctx.fill();
+
+    // Draw leaf/stem decorations
+    if (fruit.name === 'Cherry') {
+      this.ctx.strokeStyle = '#5c4033';
+      this.ctx.lineWidth = 2.5;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, -radius * 0.85);
+      this.ctx.quadraticCurveTo(-radius * 0.25, -radius * 1.4, -radius * 0.15, -radius * 1.5);
+      this.ctx.stroke();
+      this.ctx.fillStyle = '#22c55e';
+      this.ctx.beginPath();
+      this.ctx.ellipse(-radius * 0.15, -radius * 1.5, radius * 0.3, radius * 0.15, -Math.PI / 4, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.stroke();
+    } else if (fruit.name === 'Strawberry') {
+      this.ctx.fillStyle = '#22c55e';
+      this.ctx.beginPath();
+      this.ctx.moveTo(-radius * 0.75, -radius * 0.5);
+      this.ctx.quadraticCurveTo(0, -radius * 0.2, radius * 0.75, -radius * 0.5);
+      this.ctx.lineTo(radius * 0.4, -radius * 0.95);
+      this.ctx.lineTo(0, -radius * 0.65);
+      this.ctx.lineTo(-radius * 0.4, -radius * 0.95);
+      this.ctx.closePath();
+      this.ctx.fill();
+      this.ctx.stroke();
+
+      // Yellow seeds
+      this.ctx.fillStyle = '#fef08a';
+      const numSeeds = 5;
+      for (let i = 0; i < numSeeds; i++) {
+        const sa = (i / numSeeds) * Math.PI * 2 + 0.3;
+        const sx = Math.cos(sa) * radius * 0.55;
+        const sy = Math.sin(sa) * radius * 0.55 * 0.8;
+        if (sy > -radius * 0.25 && sy < radius * 0.3 && sx > -radius * 0.35 && sx < radius * 0.35) continue;
+        this.ctx.beginPath();
+        this.ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+        this.ctx.fill();
+      }
+    } else if (fruit.name === 'Grape') {
+      this.ctx.strokeStyle = '#5c4033';
+      this.ctx.lineWidth = 2.5;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, -radius * 0.85);
+      this.ctx.lineTo(radius * 0.15, -radius * 1.25);
+      this.ctx.stroke();
+    } else if (fruit.name === 'Orange') {
+      this.ctx.fillStyle = '#22c55e';
+      this.ctx.beginPath();
+      this.ctx.ellipse(radius * 0.25, -radius * 0.95, radius * 0.25, radius * 0.12, Math.PI / 6, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.stroke();
+    } else if (fruit.name === 'Apple') {
+      this.ctx.strokeStyle = '#5c4033';
+      this.ctx.lineWidth = 3;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, -radius * 0.85);
+      this.ctx.lineTo(radius * 0.15, -radius * 1.3);
+      this.ctx.stroke();
+      this.ctx.fillStyle = '#22c55e';
+      this.ctx.beginPath();
+      this.ctx.ellipse(radius * 0.35, -radius * 1.2, radius * 0.3, radius * 0.15, Math.PI / 4, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.stroke();
+    } else if (fruit.name === 'Pear') {
+      this.ctx.strokeStyle = '#5c4033';
+      this.ctx.lineWidth = 3;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, -radius * 0.85);
+      this.ctx.lineTo(-radius * 0.15, -radius * 1.35);
+      this.ctx.stroke();
+    } else if (fruit.name === 'Peach') {
+      this.ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+      this.ctx.lineWidth = 2.5;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, -radius * 0.95);
+      this.ctx.quadraticCurveTo(-radius * 0.2, 0, 0, radius * 0.95);
+      this.ctx.stroke();
+    } else if (fruit.name === 'Pineapple') {
+      this.ctx.fillStyle = '#15803d';
+      this.ctx.beginPath();
+      this.ctx.moveTo(-radius * 0.45, -radius * 0.65);
+      this.ctx.lineTo(-radius * 0.55, -radius * 1.35);
+      this.ctx.lineTo(-radius * 0.2, -radius * 0.9);
+      this.ctx.lineTo(0, -radius * 1.55);
+      this.ctx.lineTo(radius * 0.2, -radius * 0.9);
+      this.ctx.lineTo(radius * 0.55, -radius * 1.35);
+      this.ctx.lineTo(radius * 0.45, -radius * 0.65);
+      this.ctx.closePath();
+      this.ctx.fill();
+      this.ctx.stroke();
+
+      this.ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+      this.ctx.lineWidth = 1.5;
+      this.ctx.beginPath();
+      for (let d = -radius; d < radius; d += radius * 0.45) {
+        this.ctx.moveTo(d, -Math.sqrt(radius * radius - d * d));
+        this.ctx.lineTo(d + radius, Math.sqrt(radius * radius - (d + radius) * (d + radius)) || radius);
+        this.ctx.moveTo(d, Math.sqrt(radius * radius - d * d));
+        this.ctx.lineTo(d + radius, -Math.sqrt(radius * radius - (d + radius) * (d + radius)) || -radius);
+      }
+      this.ctx.stroke();
+    } else if (fruit.name === 'Melon') {
+      this.ctx.strokeStyle = '#15803d';
+      this.ctx.lineWidth = 3.5;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, -radius * 0.9);
+      this.ctx.quadraticCurveTo(radius * 0.25, -radius * 1.3, 0, -radius * 1.5);
+      this.ctx.stroke();
+    } else if (fruit.name === 'Watermelon') {
+      this.ctx.strokeStyle = '#14532d';
+      this.ctx.lineWidth = Math.max(3.5, radius * 0.08);
+      const numStripes = 5;
+      for (let i = 0; i < numStripes; i++) {
+        const sx = -radius + (i + 0.5) * (radius * 2 / numStripes);
+        this.ctx.beginPath();
+        this.ctx.moveTo(sx, -Math.sqrt(radius * radius - sx * sx));
+        this.ctx.bezierCurveTo(
+          sx - radius * 0.1, -radius * 0.5,
+          sx + radius * 0.1, radius * 0.5,
+          sx, Math.sqrt(radius * radius - sx * sx)
+        );
+        this.ctx.stroke();
+      }
+    }
+
+    // Draw cheeks (blush)
+    this.ctx.fillStyle = 'rgba(244, 63, 94, 0.45)';
+    this.ctx.beginPath();
+    this.ctx.arc(-radius * 0.5, radius * 0.15, radius * 0.18, 0, Math.PI * 2);
+    this.ctx.arc(radius * 0.5, radius * 0.15, radius * 0.18, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Eyes
+    const eyeX = radius * 0.28;
+    const eyeY = -radius * 0.08;
+    const eyeR = Math.max(2.5, radius * 0.07);
+    this.ctx.fillStyle = '#2c1e13';
+    this.ctx.beginPath();
+    this.ctx.arc(-eyeX, eyeY, eyeR, 0, Math.PI * 2);
+    this.ctx.arc(eyeX, eyeY, eyeR, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Eye glints
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.beginPath();
+    this.ctx.arc(-eyeX - eyeR * 0.25, eyeY - eyeR * 0.25, eyeR * 0.3, 0, Math.PI * 2);
+    this.ctx.arc(eyeX - eyeR * 0.25, eyeY - eyeR * 0.25, eyeR * 0.3, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Smile
+    this.ctx.strokeStyle = '#2c1e13';
+    this.ctx.lineWidth = Math.max(2, radius * 0.06);
+    this.ctx.lineCap = 'round';
+    this.ctx.beginPath();
+    this.ctx.arc(0, radius * 0.12, radius * 0.15, 0, Math.PI, false);
+    this.ctx.stroke();
+
+    this.ctx.restore();
+  }
+
   private draw() {
     const isDark = document.documentElement.classList.contains('dark');
     
-    // Clear Canvas
-    this.ctx.fillStyle = isDark ? '#0f0f0f' : '#ffffff';
+    // Clear Canvas with a soft color
+    this.ctx.fillStyle = isDark ? '#221812' : '#f0f9ff'; // sky/night blue background
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Draw grid lines inside the bucket area for Vercel developer dashboard look
-    this.ctx.strokeStyle = isDark ? '#1c1c1c' : '#f0f0f0';
-    this.ctx.lineWidth = 1;
-    // Vertical grid lines
-    for (let x = 80; x < 400; x += 40) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, 120);
-      this.ctx.lineTo(x, 610);
-      this.ctx.stroke();
-    }
-    // Horizontal grid lines
-    for (let y = 160; y < 610; y += 40) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(40, y);
-      this.ctx.lineTo(400, y);
-      this.ctx.stroke();
-    }
+    // Draw a cute centerline down the bucket
+    this.ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+    this.ctx.lineWidth = 2;
+    this.ctx.setLineDash([8, 8]);
+    this.ctx.beginPath();
+    this.ctx.moveTo(220, 120);
+    this.ctx.lineTo(220, 610);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]); // Reset line dash
 
-    // Draw the visible U-shaped bucket (half-cut view bucket)
+    // Draw the visible U-shaped bucket
     this.ctx.save();
-    // Glassy background fill inside the bucket
-    this.ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.015)';
+    // Glassy background fill inside the bucket (light cream inside)
+    this.ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.5)';
     this.ctx.beginPath();
     this.ctx.moveTo(40, 120);
     this.ctx.lineTo(40, 600);
@@ -756,9 +981,9 @@ export class GameEngine {
     this.ctx.closePath();
     this.ctx.fill();
 
-    // Wall borders
-    this.ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.12)';
-    this.ctx.lineWidth = 6;
+    // Draw bucket frame (thick border)
+    this.ctx.strokeStyle = isDark ? '#ea580c' : '#fed7aa'; // Indigo / orange-yellow frame
+    this.ctx.lineWidth = 8;
     this.ctx.lineCap = 'round';
     this.ctx.lineJoin = 'round';
     this.ctx.beginPath();
@@ -769,27 +994,21 @@ export class GameEngine {
     this.ctx.arcTo(400, 610, 400, 600, 10);
     this.ctx.lineTo(400, 120);
     this.ctx.stroke();
+
+    // Wooden ground floor under the bucket
+    this.ctx.fillStyle = '#b45309'; // warm wooden brown
+    this.ctx.fillRect(0, 610, this.width, 30);
+    this.ctx.fillStyle = '#78350f'; // darker wood border
+    this.ctx.fillRect(0, 610, this.width, 4);
     this.ctx.restore();
 
-    // Draw active fruits
+    // Draw active fruits using vector drawing
     const bodies = Matter.Composite.allBodies(this.engine.world);
     bodies.forEach((body) => {
       if ((body as any).label === 'fruit') {
         const fruitIdx = (body as any).fruitIndex;
         const fruit = FRUITS[fruitIdx];
-        
-        this.ctx.save();
-        this.ctx.translate(body.position.x, body.position.y);
-        this.ctx.rotate(body.angle);
-
-        // Draw Fruit Emoji centered (no circular background or outline)
-        this.ctx.globalAlpha = 1.0;
-        this.ctx.font = `${fruit.radius * 1.8}px "Inter", sans-serif`;
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(fruit.emoji, 0, 0);
-
-        this.ctx.restore();
+        this.drawFruit(body.position.x, body.position.y, fruit.radius, fruitIdx, body.angle, 1.0);
       }
     });
 
@@ -802,27 +1021,12 @@ export class GameEngine {
       const y2 = m.y2 + (m.targetY - m.y2) * m.progress;
 
       // Shrink size as they get closer to the center
-      const currentRadius = m.radius * (1 - m.progress * 0.4); // shrinks by up to 40%
+      const currentRadius = m.radius * (1 - m.progress * 0.4);
 
       // Draw fruit 1
-      this.ctx.save();
-      this.ctx.translate(x1, y1);
-      this.ctx.font = `${currentRadius * 1.8}px "Inter", sans-serif`;
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.globalAlpha = 1 - m.progress * 0.3; // fade slightly
-      this.ctx.fillText(m.emoji, 0, 0);
-      this.ctx.restore();
-
+      this.drawFruit(x1, y1, currentRadius, m.nextIndex - 1, 0, 1.0 - m.progress * 0.3);
       // Draw fruit 2
-      this.ctx.save();
-      this.ctx.translate(x2, y2);
-      this.ctx.font = `${currentRadius * 1.8}px "Inter", sans-serif`;
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.globalAlpha = 1 - m.progress * 0.3; // fade slightly
-      this.ctx.fillText(m.emoji, 0, 0);
-      this.ctx.restore();
+      this.drawFruit(x2, y2, currentRadius, m.nextIndex - 1, 0, 1.0 - m.progress * 0.3);
     });
 
     // Draw particles
@@ -836,9 +1040,9 @@ export class GameEngine {
       this.ctx.restore();
     });
 
-    // Draw Dropper Preview Guide Line & Next Fruit
+    // Draw Dropper Preview Guide Line & Dropper Fruit
     if (!this.gameOver && !this.hotfixActive) {
-      const activeFruit = FRUITS[this.nextFruitIndex];
+      const activeFruit = FRUITS[this.currentFruitIndex];
       const nextX = Math.max(40 + activeFruit.radius, Math.min(this.previewX, 400 - activeFruit.radius));
 
       this.ctx.save();
@@ -847,35 +1051,31 @@ export class GameEngine {
       this.ctx.beginPath();
       this.ctx.setLineDash([4, 6]);
       this.ctx.moveTo(nextX, 85);
-      this.ctx.lineTo(nextX, 610); // Stop at bottom of bucket
-      this.ctx.strokeStyle = isDark ? '#444444' : '#cccccc';
-      this.ctx.lineWidth = 1.5;
+      this.ctx.lineTo(nextX, 610);
+      this.ctx.strokeStyle = isDark ? '#4c3224' : '#cbd5e1';
+      this.ctx.lineWidth = 2;
       this.ctx.stroke();
 
-      // Dropper Fruit placeholder (only emoji, no circle)
-      this.ctx.globalAlpha = 0.7;
-      this.ctx.font = `${activeFruit.radius * 1.8}px "Inter", sans-serif`;
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-      this.ctx.fillText(activeFruit.emoji, nextX, 50);
+      // Dropper Fruit placeholder
+      this.drawFruit(nextX, 50, activeFruit.radius, this.currentFruitIndex, 0, 0.85);
 
       this.ctx.restore();
     }
 
-    // Draw Hotfix Selection Indicator (if hotfix active)
+    // Draw Hotfix Selection Indicator (if upgrade active)
     if (this.hotfixActive) {
       this.ctx.save();
-      this.ctx.fillStyle = 'rgba(238, 0, 0, 0.05)';
+      this.ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
       this.ctx.fillRect(0, 0, this.width, this.height);
       
-      this.ctx.strokeStyle = '#ee0000';
-      this.ctx.lineWidth = 2;
+      this.ctx.strokeStyle = '#ef4444';
+      this.ctx.lineWidth = 4;
       this.ctx.strokeRect(4, 4, this.width - 8, this.height - 8);
       
-      this.ctx.font = '12px font-mono, JetBrains Mono, monospace';
-      this.ctx.fillStyle = '#ee0000';
+      this.ctx.font = 'bold 14px "Fredoka", sans-serif';
+      this.ctx.fillStyle = '#ef4444';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('[ HOTFIX ACTIVE: CLICK ASSET TO UPGRADE ]', this.width / 2, 30);
+      this.ctx.fillText('✨ MAGIC UPGRADE: TAP A FRUIT TO GROW IT! ✨', this.width / 2, 30);
       this.ctx.restore();
     }
 
@@ -890,21 +1090,21 @@ export class GameEngine {
       if (this.redLineWarning) {
         // Flash red line
         const alpha = Math.abs(Math.sin(Date.now() * 0.007));
-        this.ctx.strokeStyle = `rgba(238, 0, 0, ${alpha * 0.7 + 0.3})`;
-        this.ctx.lineWidth = 2.5;
+        this.ctx.strokeStyle = `rgba(239, 68, 68, ${alpha * 0.7 + 0.3})`;
+        this.ctx.lineWidth = 3.5;
         this.logWarningOnce();
       } else {
-        this.ctx.strokeStyle = isDark ? 'rgba(238, 0, 0, 0.4)' : 'rgba(238, 0, 0, 0.25)';
-        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeStyle = isDark ? 'rgba(239, 68, 68, 0.5)' : 'rgba(239, 68, 68, 0.35)';
+        this.ctx.lineWidth = 2.5;
       }
       
       this.ctx.stroke();
 
-      // "BUFFER OVERFLOW LIMIT" label
-      this.ctx.font = '9px JetBrains Mono, monospace';
-      this.ctx.fillStyle = this.redLineWarning ? '#ee0000' : (isDark ? '#888888' : '#777777');
+      // "DANGER ZONE!" label
+      this.ctx.font = 'bold 10px "Fredoka", sans-serif';
+      this.ctx.fillStyle = this.redLineWarning ? '#ef4444' : (isDark ? '#cbd5e1' : '#6b432a');
       this.ctx.textAlign = 'right';
-      this.ctx.fillText('BUFFER OVERFLOW LIMIT', 388, this.redLineY - 6);
+      this.ctx.fillText('⚠️ DANGER ZONE!', 388, this.redLineY - 8);
       this.ctx.restore();
     }
   }
@@ -922,7 +1122,7 @@ export class GameEngine {
 
   // Update mouse position for dropper preview (constrained inside the bucket walls)
   public updatePreviewX(x: number) {
-    const activeFruit = FRUITS[this.nextFruitIndex];
+    const activeFruit = FRUITS[this.currentFruitIndex];
     this.previewX = Math.max(40 + activeFruit.radius, Math.min(x, 400 - activeFruit.radius));
   }
 
